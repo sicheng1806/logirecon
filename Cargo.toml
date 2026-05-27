@@ -1,0 +1,8 @@
+[package]
+name = "logirecon"
+version = "0.1.0"
+edition = "2024"
+description = "物流对账分析工具，支持Excel数据导入、自动核对和报表生成"
+authors = ["sicheng<sicheng1806@outlook.com>"]
+
+[dependencies]
