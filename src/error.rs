@@ -10,6 +10,8 @@ pub enum Error {
     Polars(#[from] polars::error::PolarsError),
     #[error("calamine Error: {0}")]
     Calamine(#[from] calamine::Error),
+    #[error("eframe Error: {0}")]
+    Eframe(#[from] eframe::Error),
     #[error("Other Error: {0}")]
     Other(String),
 }

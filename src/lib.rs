@@ -1,5 +1,6 @@
 pub mod utils;
 pub mod error;
+pub mod app;
 
 pub use error::Result;
 

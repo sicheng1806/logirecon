@@ -8,7 +8,12 @@ authors = ["sicheng<sicheng1806@outlook.com>"]
 [dependencies]
 calamine = { version = "0.35.0", features = ["chrono"] }
 chrono = { version = "0.4.41", features = ["std"] }
+eframe = { version = "0.34.3", features = ["persistence"] }
+egui = "0.34.3"
+env_logger = "0.11.10"
+log = "0.4.30"
 polars = { version = "0.53.0", features = ["lazy", "round_series"] }
+serde = { version = "1.0.228", features = ["derive"] }
 thiserror = "2.0.18"
 
 # Enable a small amount of optimization in the dev profile.
