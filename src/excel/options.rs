@@ -1,7 +1,7 @@
 use std::{collections::HashSet, path::PathBuf};
 
 /// Excel读取选项
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExcelReadOptions {
     pub headers: HashSet<String>,
     pub path: Option<PathBuf>,

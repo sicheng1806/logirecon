@@ -2,23 +2,33 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("Not Found Error: {0}")]
-    NotFoundError(String),
-    #[error("Parse Error: {0}")]
-    ParseError(String),
-    #[error("Polars Error: {0}")]
-    Polars(#[from] polars::error::PolarsError),
-    #[error("calamine Error: {0}")]
-    Calamine(#[from] calamine::Error),
-    #[error("eframe Error: {0}")]
-    Eframe(#[from] eframe::Error),
-    #[error("Other Error: {0}")]
-    Other(String),
+    #[error("图形界面错误: {0}")]
+    GUI(#[from] eframe::Error),
+    #[error("数据解析错误: {0}")]
+    Process(String),
+    #[error("IO错误: {0}")]
+    IO(String),
+    #[error("{0}")]
+    UnKnown(String)
 }
 
 impl From<&str> for Error {
     fn from(value: &str) -> Self {
-        Error::Other(value.to_string())
+        Error::UnKnown(value.to_string())
+    }
+}
+
+impl From<polars::error::PolarsError> for Error {
+    fn from(value: polars::error::PolarsError) -> Self {
+        let msg = value.to_string();
+        Self::Process(format!("Polars错误: {}", msg))
+    }
+}
+
+impl From<calamine::Error> for Error {
+    fn from(value: calamine::Error) -> Self {
+        let msg = value.to_string();
+        Self::IO(format!("Excel读取/写入错误: {}", msg))
     }
 }
 

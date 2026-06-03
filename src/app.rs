@@ -5,9 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default)]
 #[serde(default)]
-pub struct EguiApp {
-    counter: i64,
-}
+pub struct EguiApp {}
 
 impl EguiApp {
     pub const APP_NAME: &'static str = "logirecon";
@@ -42,18 +40,6 @@ impl EguiApp {
             .insert(0, "simhei".into());
         ctx.set_fonts(fonts);
     }
-
-    fn counter(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            if ui.button("-").clicked() {
-                self.counter -= 1;
-            }
-            ui.label(format!("{}", self.counter));
-            if ui.button("+").clicked() {
-                self.counter += 1;
-            }
-        });
-    }
 }
 
 impl eframe::App for EguiApp {
@@ -62,9 +48,12 @@ impl eframe::App for EguiApp {
     }
 
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        egui::Panel::top("title").show_inside(ui, |ui| {
+            ui.heading("核对你的物流账单");
+        });
         egui::CentralPanel::default().show_inside(ui, |ui| {
-            ui.heading("你好世界");
-            self.counter(ui);
+            ui.add_space(12.0);
+            ui.strong("主内容区");
         });
     }
 }

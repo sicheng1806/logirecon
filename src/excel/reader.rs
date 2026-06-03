@@ -1,14 +1,12 @@
 use crate::{Error, Result, excel::ExcelReadOptions};
 use calamine::{Data, DataType, Range, Reader};
+use log::debug;
 use polars::{
     datatypes::PlSmallStr,
     frame::{DataFrame, column::Column},
     series::Series,
 };
-use std::{
-    collections::{HashMap, HashSet},
-    mem::{Discriminant, discriminant},
-};
+use std::collections::{HashMap, HashSet};
 
 type PlDataType = polars::datatypes::DataType;
 
@@ -17,6 +15,24 @@ type PlDataType = polars::datatypes::DataType;
 pub struct ExcelReader {
     range: Range<Data>,
     headers: HashMap<String, u32>,
+}
+
+impl ExcelReadOptions {
+    pub fn try_into_reader(self) -> Result<ExcelReader> {
+        let path = self.path.ok_or("实现错误: 缺少文件路径参数")?;
+        let headers = self.headers;
+        let sheet = self.sheet.ok_or("实现错误: 缺少表单名称")?;
+        let primary_key = self.primary_key.ok_or("实现错误: 缺少用于确定区域的主键")?;
+
+        debug!("读取表格: {:?} {}", path.as_os_str(), &sheet);
+        //
+        let mut wb = calamine::open_workbook_auto(path)?;
+        let range = wb.worksheet_range(&sheet)?;
+        //
+        let (data_range, headers_cols) = get_headers_and_datarange(range, headers, primary_key)?;
+        let reader = ExcelReader::new(data_range, headers_cols);
+        Ok(reader)
+    }
 }
 
 impl ExcelReader {
@@ -37,11 +53,13 @@ impl ExcelReader {
             HashMap::from_iter(self.headers.into_iter().map(|(k, v)| (v, k)));
         let range = self.range;
 
+        debug!("以表头: {:?} 读取数据", headers.values());
+
         let mut columns_data: HashMap<String, Vec<Data>> = HashMap::new();
         for name in headers.values() {
             columns_data.insert(name.to_owned(), vec![]);
         }
-        //
+        // 填充 columns_data
         let start = range.start().unwrap();
         for (row_num, row) in range.rows().enumerate() {
             if row_num == 0 {
@@ -58,7 +76,7 @@ impl ExcelReader {
             }
         }
 
-        //
+        // 将列转换为Series
         let mut columns: Vec<Column> = vec![];
         for (name, data) in columns_data {
             let col = data_to_series(name, data)?;
@@ -66,6 +84,7 @@ impl ExcelReader {
         }
 
         let df = DataFrame::new_infer_height(columns)?;
+        debug!("表格读取成功: {:?}", df.schema());
         Ok(df)
     }
 }
@@ -80,25 +99,22 @@ fn data_to_series(
     }
     // 确定列类型
     let mut only_one_type = true; // 是否为String类型
-    let mut first_type = None;
-    let empty = discriminant(&Data::Empty);
+    let mut dtype = None;
     for data in &datas {
-        let data_type = discriminant(data);
-        if data_type == empty {
+        let data_type = get_dtype(data);
+        if data_type == PlDataType::Null {
             continue;
         }
-        if let Some(first_type) = first_type {
-            if data_type != first_type {
-                only_one_type = false;
-            }
-        } else {
-            first_type = Some(discriminant(data));
+        if dtype.is_none() {
+            dtype = Some(data_type)
+        } else if Some(data_type) != dtype {
+            only_one_type = false;
         }
     }
     // 生成给定类型的Series
-    if let Some(first_type) = first_type {
-        let dtype = if !only_one_type {
-            data_to_dtype(&first_type)
+    if let Some(dtype) = dtype {
+        let dtype = if only_one_type {
+            dtype
         } else {
             PlDataType::String
         };
@@ -109,39 +125,44 @@ fn data_to_series(
     }
 }
 
-fn data_to_dtype(data: &Discriminant<Data>) -> PlDataType {
-    if *data == discriminant(&Data::Float(0.0)) {
-        PlDataType::Float64
-    } else if *data == discriminant(&Data::Int(0)) {
-        PlDataType::Int64
-    } else if *data == discriminant(&Data::Bool(true)) {
-        PlDataType::Boolean
-    } else {
-        PlDataType::String
+fn get_dtype(data: &Data) -> PlDataType {
+    match data {
+        Data::Float(_) => PlDataType::Float64,
+        Data::Int(_) => PlDataType::Int64,
+        Data::Bool(_) => PlDataType::Boolean,
+        Data::DateTime(_) => PlDataType::Date,
+        Data::Empty => PlDataType::Null,
+        Data::String(v) => {
+            if v.is_empty() {
+                PlDataType::Null
+            } else {
+                PlDataType::String
+            }
+        }
+        _ => PlDataType::String,
     }
 }
 
 fn data_to_series_with_opts(datas: Vec<Data>, dtype: PlDataType) -> Series {
-    match dtype {
+    let s: Series = match dtype {
         PlDataType::Float64 => datas.into_iter().map(|t| t.as_f64()).collect(),
         PlDataType::Int64 => datas.into_iter().map(|t| t.as_i64()).collect(),
+        PlDataType::Date => datas
+            .into_iter()
+            .map(|t| {
+                if let Some(date) = t.as_date() {
+                    date.to_string()
+                } else {
+                    "".into()
+                }
+            })
+            .collect(),
         _ => datas.into_iter().map(|t| t.to_string()).collect(),
-    }
-}
-
-impl ExcelReadOptions {
-    pub fn try_into_reader(self) -> Result<ExcelReader> {
-        let path = self.path.ok_or("实现错误: 缺少文件路径参数")?;
-        let headers = self.headers;
-        let sheet = self.sheet.ok_or("实现错误: 缺少表单名称")?;
-        let primary_key = self.primary_key.ok_or("实现错误: 缺少用于确定区域的主键")?;
-        //
-        let mut wb = calamine::open_workbook_auto(path)?;
-        let range = wb.worksheet_range(&sheet)?;
-        //
-        let (data_range, headers_cols) = get_headers_and_datarange(range, headers, primary_key)?;
-        let reader = ExcelReader::new(data_range, headers_cols);
-        Ok(reader)
+    };
+    if dtype == PlDataType::Date {
+        s.cast(&PlDataType::Date).unwrap()
+    } else {
+        s
     }
 }
 
@@ -174,7 +195,7 @@ fn get_headers_and_datarange(
         }
     }
     if headers_row_idx.is_none() {
-        return Err(Error::NotFoundError("未找到所有的表头".into()));
+        return Err(Error::IO("未找到所有的表头".into()));
     }
     // 根据主键列确定表格区域
     let _col_idx = headers_mapping.get(&primary_key).unwrap();
@@ -187,9 +208,9 @@ fn get_headers_and_datarange(
             continue;
         }
         if row_num == 1 {
-            data_type = Some(discriminant(data));
+            data_type = Some(get_dtype(data));
         }
-        if discriminant(data) != data_type.unwrap() {
+        if Some(get_dtype(data)) != data_type {
             break;
         }
         end_idx += 1;
