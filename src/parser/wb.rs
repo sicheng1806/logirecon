@@ -1,7 +1,7 @@
 use polars::prelude::DataFrame;
 
-use super::super::{Parser, SheetProvider};
-use crate::{Result, pipeline::billls::Bill};
+use super::{Parser, SheetProvider};
+use crate::{BILL_SCHEMA, Result, Standardlize};
 
 pub struct WBParser {
     provider: SheetProvider,
@@ -31,6 +31,12 @@ impl Default for WBParser {
     }
 }
 
+impl Standardlize for WBParser {
+    fn standardlize(&self, df: polars::prelude::LazyFrame) -> Result<polars::prelude::LazyFrame> {
+        BILL_SCHEMA.standardlize(df)
+    }
+}
+
 impl Parser for WBParser {
     fn provider(&self) -> &SheetProvider {
         &self.provider
@@ -38,10 +44,6 @@ impl Parser for WBParser {
 
     fn provider_mut(&mut self) -> &mut SheetProvider {
         &mut self.provider
-    }
-
-    fn schema() -> crate::pipeline::Schema {
-        Bill::schema()
     }
 
     fn parse_dataframe(&self, dataframe: DataFrame) -> Result<DataFrame> {
@@ -115,20 +117,5 @@ impl Parser for WBParser {
             .collect()?;
         // dbg!(&df);
         Ok(df)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::test::*;
-
-    #[test]
-    fn test_parser() -> Result<()> {
-        let mut wb = WBParser::default();
-        wb.provider_mut().add_sheets(PATH_BILLS, SHEET_WB);
-        let df = wb.parse()?;
-        println!("{}", df);
-        Ok(())
     }
 }

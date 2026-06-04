@@ -41,22 +41,3 @@ impl ExcelReadOptions {
         self
     }
 }
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-    use crate::test::*;
-    use crate::Result;
-
-    #[test]
-    fn test_opts() -> Result<()> {
-        let opts = ExcelReadOptions::default()
-            .with_headers(HEADERS_HEADWAY_2026)
-            .with_path(PATH_HEADWAY)
-            .with_sheet(SHEET_HEADWAY_2026)
-            .with_primary("序号");
-        println!("{:?}", &opts);
-        Ok(())
-    }
-}

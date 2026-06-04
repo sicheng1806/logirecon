@@ -1,12 +1,14 @@
-use logirecon::{Result, app::EguiApp};
+// Prevent console window in addition to Slint window in Windows release builds when, e.g., starting the app via file manager. Ignored on other platforms.
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-fn main() -> Result<()> {
-    env_logger::init();
-    let native_options = eframe::NativeOptions::default();
-    eframe::run_native(
-        EguiApp::APP_NAME,
-        native_options,
-        Box::new(|cc| Ok(Box::new(EguiApp::new(cc)))),
-    )?;
+use std::error::Error;
+
+slint::include_modules!();
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let ui = AppWindow::new()?;
+
+    ui.run()?;
+
     Ok(())
 }

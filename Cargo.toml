@@ -8,9 +8,6 @@ authors = ["sicheng<sicheng1806@outlook.com>"]
 [dependencies]
 calamine = { version = "0.35.0", features = ["chrono"] }
 chrono = { version = "0.4.41", features = ["std"] }
-eframe = { version = "0.34.3", features = ["persistence"] }
-egui = "0.34.3"
-egui_table = "0.8.0"
 env_logger = "0.11.10"
 log = "0.4.30"
 polars = { version = "0.53.0", features = [
@@ -24,6 +21,12 @@ polars = { version = "0.53.0", features = [
 ] }
 serde = { version = "1.0.228", features = ["derive"] }
 thiserror = "2.0.18"
+slint = "1.16.1"
+# 在slint 1.17 版本后删除此依赖
+icu_provider = { version = "2", features = ["logging"] }
+
+[build-dependencies]
+slint-build = "1.16.1"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
@@ -31,4 +34,8 @@ opt-level = 1
 
 # Enable a large amount of optimization in the dev profile for dependencies.
 [profile.dev.package."*"]
-opt-level = 3
+opt-level = 2
+
+[profile.release]
+codegen-units = 1
+lto = true

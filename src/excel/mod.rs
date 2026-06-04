@@ -22,3 +22,4 @@ mod options;
 mod reader;
 
 pub use options::ExcelReadOptions;
+pub use reader::ExcelReader;

@@ -2,14 +2,12 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("图形界面错误: {0}")]
-    GUI(#[from] eframe::Error),
     #[error("数据解析错误: {0}")]
     Process(String),
     #[error("IO错误: {0}")]
     IO(String),
     #[error("{0}")]
-    UnKnown(String)
+    UnKnown(String),
 }
 
 impl From<&str> for Error {

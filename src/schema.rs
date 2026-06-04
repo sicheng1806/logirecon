@@ -1,7 +1,9 @@
-use std::collections::HashMap;
+use crate::{DataType, Error, LazyFrame, Result};
+use std::{collections::HashMap, sync::LazyLock};
 
-use crate::{Error, Result};
-use polars::{datatypes::DataType, lazy::frame::LazyFrame};
+pub trait Standardlize {
+    fn standardlize(&self, df: LazyFrame) -> Result<LazyFrame>;
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AggOptions {
@@ -96,8 +98,19 @@ impl Schema {
         Ok(self)
     }
 
+    /// 返回列名
+    pub fn headers(&self) -> Vec<String> {
+        self.columns
+            .keys()
+            .into_iter()
+            .map(|t| t.to_string())
+            .collect()
+    }
+}
+
+impl Standardlize for Schema {
     /// 返回标准化后的数据表
-    pub fn standardlize(&self, df: LazyFrame) -> Result<LazyFrame> {
+    fn standardlize(&self, df: LazyFrame) -> Result<LazyFrame> {
         use polars::prelude::*;
         let dtypes = PlHashMap::from_iter(
             self.columns
@@ -122,15 +135,6 @@ impl Schema {
             .collect();
         let df = df.cast(dtypes, true).group_by(primaries).agg(aggs);
         Ok(df)
-    }
-
-    /// 返回列名
-    pub fn headers(&self) -> Vec<String> {
-        self.columns
-            .keys()
-            .into_iter()
-            .map(|t| t.to_string())
-            .collect()
     }
 }
 

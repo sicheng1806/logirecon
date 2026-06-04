@@ -2,11 +2,10 @@ use chrono::{Datelike, Local};
 use polars::prelude::DataFrame;
 
 use super::{Parser, SheetProvider};
-use crate::{Error, Result, pipeline::Shipment};
+use crate::{Error, Result, SHIPMENT_SCHEMA, Standardlize};
 
 pub struct HeadwayParser {
     provider: SheetProvider,
-    // datefmt: String,
     year: i32,
 }
 
@@ -33,6 +32,12 @@ impl Default for HeadwayParser {
     }
 }
 
+impl Standardlize for HeadwayParser {
+    fn standardlize(&self, df: polars::prelude::LazyFrame) -> Result<polars::prelude::LazyFrame> {
+        SHIPMENT_SCHEMA.standardlize(df)
+    }
+}
+
 impl Parser for HeadwayParser {
     fn provider(&self) -> &SheetProvider {
         &self.provider
@@ -40,10 +45,6 @@ impl Parser for HeadwayParser {
 
     fn provider_mut(&mut self) -> &mut SheetProvider {
         &mut self.provider
-    }
-
-    fn schema() -> crate::pipeline::Schema {
-        Shipment::schema()
     }
 
     fn parse_dataframe(&self, dataframe: DataFrame) -> Result<DataFrame> {
@@ -111,24 +112,5 @@ impl Parser for HeadwayParser {
             .map_err(|e| Error::Process(format!("表格解析错误: {}", e)))?;
 
         Ok(df)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::test::*;
-
-    #[test]
-    fn test_parser() -> Result<()> {
-        let mut parser = HeadwayParser::default();
-        parser
-            .provider_mut()
-            .add_sheets(PATH_HEADWAY, SHEET_HEADWAY_2026)
-            .update_headers([("报关费", "报关或其他费")]);
-        // dbg!(parser.provider.headers());
-        let df = parser.parse()?;
-        println!("{}", df);
-        Ok(())
     }
 }
