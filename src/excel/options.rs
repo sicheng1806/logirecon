@@ -1,6 +1,19 @@
 use std::{collections::HashSet, path::PathBuf};
 
 /// Excel读取选项
+///
+/// # Example
+///
+/// ```no_run
+/// let df = ExcelReadOptions::default()
+///     .with_headers(headers)
+///     .with_path(path)
+///     .with_sheet(sheet)
+///     .with_primary("序号")
+///     .try_into_reader()?
+///     .finish()?;
+/// println!("{}", df);
+/// ```
 #[derive(Debug, Clone)]
 pub struct ExcelReadOptions {
     pub headers: HashSet<String>,

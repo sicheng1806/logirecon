@@ -4,29 +4,29 @@ use thiserror::Error;
 pub enum Error {
     #[error("数据解析错误: {0}")]
     Process(String),
-    #[error("IO错误: {0}")]
+    #[error("文件读写错误: {0}")]
     IO(String),
     #[error("{0}")]
-    UnKnown(String),
+    Other(String),
 }
 
 impl From<&str> for Error {
     fn from(value: &str) -> Self {
-        Error::UnKnown(value.to_string())
+        Error::Other(value.to_string())
     }
 }
 
 impl From<polars::error::PolarsError> for Error {
     fn from(value: polars::error::PolarsError) -> Self {
         let msg = value.to_string();
-        Self::Process(format!("Polars错误: {}", msg))
+        Self::Process(msg)
     }
 }
 
 impl From<calamine::Error> for Error {
     fn from(value: calamine::Error) -> Self {
         let msg = value.to_string();
-        Self::IO(format!("Excel读取/写入错误: {}", msg))
+        Self::IO(msg)
     }
 }
 

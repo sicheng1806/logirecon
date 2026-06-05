@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 pub const PATH_HEADWAY: &'static str = "data/test/物流头程明细.xlsm";
 pub const PATH_BILLS: &'static str = "data/test/物流账单.xlsx";
 
@@ -54,6 +56,32 @@ pub const HEADERS_GRT: [&str; 9] = [
     "金额",
 ];
 
-pub const HEADERS_TSYF: [&str; 8] = ["日期", "客户运单号", "运单号", "地址编码", "件数", "收费重", "单价", "金额"];
-pub const HEADERS_TSBG: [&str; 8] = ["日期", "客户运单号", "运单号", "地址编码", "件数", "收费重", "单价", "金额"];
-pub const HEADERS_DDD:  [&str; 7] = ["签入日期", "运单号", "FBA单号", "目的仓", "件数", "收费重", "计算公式"];
+pub const HEADERS_TSYF: [&str; 8] = [
+    "日期",
+    "客户运单号",
+    "运单号",
+    "地址编码",
+    "件数",
+    "收费重",
+    "单价",
+    "金额",
+];
+pub const HEADERS_TSBG: [&str; 8] = [
+    "日期",
+    "客户运单号",
+    "运单号",
+    "地址编码",
+    "件数",
+    "收费重",
+    "单价",
+    "金额",
+];
+pub const HEADERS_DDD: [&str; 7] = [
+    "签入日期",
+    "运单号",
+    "FBA单号",
+    "目的仓",
+    "件数",
+    "收费重",
+    "计算公式",
+];

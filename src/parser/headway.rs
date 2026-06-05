@@ -1,12 +1,12 @@
 use chrono::{Datelike, Local};
-use polars::prelude::DataFrame;
 
-use super::{Parser, SheetProvider};
-use crate::{Error, Result, SHIPMENT_SCHEMA, Standardlize};
+use super::{Parse, SheetProvider, ShipmentValidated};
+use crate::{LazyFrame, Result};
 
+/// 头程数据解析器
 pub struct HeadwayParser {
-    provider: SheetProvider,
-    year: i32,
+    pub provider: SheetProvider,
+    pub year: i32,
 }
 
 impl HeadwayParser {
@@ -26,19 +26,12 @@ impl Default for HeadwayParser {
     fn default() -> Self {
         Self {
             provider: SheetProvider::new(Self::DEFAULT_HEADERS, "序号"),
-            // datefmt: "%Y/%-m/%d".into(),
             year: Local::now().year(),
         }
     }
 }
 
-impl Standardlize for HeadwayParser {
-    fn standardlize(&self, df: polars::prelude::LazyFrame) -> Result<polars::prelude::LazyFrame> {
-        SHIPMENT_SCHEMA.standardlize(df)
-    }
-}
-
-impl Parser for HeadwayParser {
+impl Parse<ShipmentValidated> for HeadwayParser {
     fn provider(&self) -> &SheetProvider {
         &self.provider
     }
@@ -47,22 +40,27 @@ impl Parser for HeadwayParser {
         &mut self.provider
     }
 
-    fn parse_dataframe(&self, dataframe: DataFrame) -> Result<DataFrame> {
+    fn parse_dataframe(&self, dataframe: polars::prelude::DataFrame) -> Result<LazyFrame> {
         use polars::prelude::*;
 
         // let datefmt = &self.datefmt;
-        let year = self.year;
+        let year_prefix = format!("Y{}", self.year);
         let name_mapping = self.provider.headers();
         let new: Vec<_> = name_mapping.keys().collect();
         let existing: Vec<_> = new.iter().map(|&k| name_mapping.get(k).unwrap()).collect();
 
         //报关周次 添加年份
-        let customs_no = col("报关周次")
-            .str()
-            .strip_chars(lit(" "))
-            .name()
-            .prefix(format!("Y{}", year).as_str())
-            .alias("报关周次");
+        let customs_no = concat_str(
+            [
+                lit(year_prefix.as_str()),
+                when(col("报关周次").str().starts_with(lit("W")))
+                    .then(col("报关周次").str().strip_chars(lit(" ")))
+                    .otherwise(lit(NULL)),
+            ],
+            "",
+            false,
+        )
+        .alias("报关周次");
 
         // 货件单号
         let shipment_no = col("货件单号")
@@ -74,7 +72,7 @@ impl Parser for HeadwayParser {
         let warehouse_code = col("物流中心编码").alias("物流中心编码");
 
         // 箱数
-        let n_pieces = col("箱数").alias("箱数");
+        let n_pieces = col("箱数").alias("件数");
 
         // 计费重
         let weight = col("货件计费重").alias("计费重");
@@ -95,21 +93,16 @@ impl Parser for HeadwayParser {
             // })
             .alias("日期");
 
-        let df = dataframe
-            .lazy()
-            .rename(existing, new, true)
-            .select([
-                customs_no,
-                shipment_no,
-                warehouse_code,
-                n_pieces,
-                weight,
-                unit_price,
-                customs_fee,
-                date,
-            ])
-            .collect()
-            .map_err(|e| Error::Process(format!("表格解析错误: {}", e)))?;
+        let df = dataframe.lazy().rename(existing, new, true).select([
+            customs_no,
+            shipment_no,
+            warehouse_code,
+            n_pieces,
+            weight,
+            unit_price,
+            customs_fee,
+            date,
+        ]);
 
         Ok(df)
     }

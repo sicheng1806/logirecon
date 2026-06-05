@@ -1,12 +1,13 @@
-use polars::prelude::DataFrame;
+use super::{BillValidated, Parse, SheetProvider};
+use crate::{LazyFrame, Result};
 
-use super::{Parser, SheetProvider};
-use crate::{BILL_SCHEMA, Result, Standardlize};
-
+/// 万邦数据解析器
+///
+///
 pub struct WBParser {
-    provider: SheetProvider,
-    datefmt: String,
-    units: (String, String),
+    pub provider: SheetProvider,
+    pub datefmt: String,
+    pub units: (String, String),
 }
 
 impl WBParser {
@@ -31,13 +32,7 @@ impl Default for WBParser {
     }
 }
 
-impl Standardlize for WBParser {
-    fn standardlize(&self, df: polars::prelude::LazyFrame) -> Result<polars::prelude::LazyFrame> {
-        BILL_SCHEMA.standardlize(df)
-    }
-}
-
-impl Parser for WBParser {
+impl Parse<BillValidated> for WBParser {
     fn provider(&self) -> &SheetProvider {
         &self.provider
     }
@@ -46,7 +41,7 @@ impl Parser for WBParser {
         &mut self.provider
     }
 
-    fn parse_dataframe(&self, dataframe: DataFrame) -> Result<DataFrame> {
+    fn parse_dataframe(&self, dataframe: polars::prelude::DataFrame) -> Result<LazyFrame> {
         use polars::prelude::*;
         let datefmt = &self.datefmt;
         let units = &self.units;
@@ -58,7 +53,7 @@ impl Parser for WBParser {
             .str()
             .to_date(StrptimeOptions {
                 format: Some(datefmt.into()),
-                strict: true,
+                strict: false,
                 exact: true,
                 cache: true,
             })
@@ -89,7 +84,7 @@ impl Parser for WBParser {
             .rename_fields(["单价", "账单类型"])
             .alias("to_split");
         // 账单类型
-        let btype_col = when(col("账单类型") == lit(units.0.as_str()))
+        let btype_col = when(col("账单类型").eq(lit(units.0.as_str())))
             .then(lit("运费"))
             .otherwise(lit("报关费"))
             .alias("账单类型");
@@ -98,6 +93,7 @@ impl Parser for WBParser {
         // 计费重
         let weight = col("收费重").alias("计费重");
 
+        // println!("parse dataframe: \n{}", dataframe);
         let df = dataframe
             .lazy()
             .rename(name_mapping.values(), name_mapping.keys(), true)
@@ -113,8 +109,7 @@ impl Parser for WBParser {
                 split_unit_price,
             ])
             .unnest(cols(["to_split"]), None)
-            .with_column(btype_col)
-            .collect()?;
+            .with_column(btype_col);
         // dbg!(&df);
         Ok(df)
     }

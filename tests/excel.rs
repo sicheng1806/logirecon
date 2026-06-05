@@ -1,3 +1,4 @@
+use logirecon::parser::provider::SheetProvider;
 use logirecon::{ExcelReadOptions, Result};
 
 mod common;
@@ -39,6 +40,31 @@ fn test_read() -> Result<()> {
             .try_into_reader()?
             .finish()?;
         println!("{}", df);
+    }
+    Ok(())
+}
+
+#[test]
+fn test_provider() -> Result<()> {
+    let path = PATH_BILLS;
+    let sheet = SHEET_WB;
+    let headers = [
+        "日期",
+        "运单号",
+        "货运单号",
+        "物流中心编码",
+        "件数",
+        "收费重",
+        "单价",
+        "费用类型",
+        "金额",
+    ];
+    let mut provider = SheetProvider::new(headers, "序号");
+    provider
+        .update_headers(headers.into_iter().zip(HEADERS_WB))
+        .add_sheets(path, sheet);
+    for df_res in provider.try_get_dataframes() {
+        println!("{}", df_res?);
     }
     Ok(())
 }
