@@ -3,19 +3,34 @@ use crate::{DataFrame, Result};
 
 /// 用户输入整合解析
 ///
-/// 通过获取解析器验证后的数据 [BillValicated], [ShipmentValicated]，
+/// 通过获取解析器验证后的数据 [BillValidated], [ShipmentValidated]，
 /// 整合两者返回业务数据 Freight和 Customs
 #[derive(Debug)]
-pub struct UserInput {
+pub struct DataRepo {
     bill: DataFrame,
     shipment: DataFrame,
 }
 
-impl UserInput {
-    pub fn new(bill: BillValidated, shipment: ShipmentValidated) -> Result<Self> {
-        let bill = bill.get_valicated()?;
-        let shipment = shipment.get_valicated()?;
+impl DataRepo {
+    pub fn new(
+        bills: impl IntoIterator<Item = BillValidated>,
+        shipments: impl IntoIterator<Item = ShipmentValidated>,
+    ) -> Result<Self> {
+        use polars::prelude::*;
+        // 获取验证数据并合并
+        let mut raw_bills = vec![];
+        let mut raw_shipmetns = vec![];
+        for bill in bills.into_iter() {
+            raw_bills.push(bill.get_valicated()?.lazy());
+        }
+        for shipment in shipments.into_iter() {
+            raw_shipmetns.push(shipment.get_valicated()?.lazy());
+        }
 
+        let bill = concat(raw_bills, UnionArgs::default())?.collect()?;
+        let shipment = concat(raw_shipmetns, UnionArgs::default())?.collect()?;
+
+        // parse
         let relation: DataFrame = build_relation(&bill, &shipment)?;
         let bill: DataFrame = patch_bill(bill, &relation)?;
         let shipment: DataFrame = patch_shipment(shipment, &relation)?;
@@ -24,15 +39,18 @@ impl UserInput {
 
     pub fn get_freight(&self) -> Result<(DataFrame, DataFrame)> {
         use polars::prelude::*;
-        // 从"账单类型“ 为 "运费" 的条件中过滤出相关信息
-        // println!("{}", self.bill.select(["账单类型", "运单号", "货件单号"])?);
+        // bill: 从"账单类型“ 为 "运费" 的条件中过滤出相关信息
         let freight_bill = self
             .bill
             .clone()
             .lazy()
             .filter(col("账单类型").eq(lit("运费")));
-        // 按 运单号 分组 并 聚合
-        let shipment_expr = col("货件单号").str().join(",", false).alias("货件单号");
+        // shipment: 按 运单号 分组 并 聚合
+        let shipment_expr = col("货件单号")
+            .unique_stable()
+            .str()
+            .join(",", false)
+            .alias("货件单号");
         let sum_exprs = ["件数", "计费重"].map(|t| col(t).sum().alias(t));
         let first_exprs =
             ["单价", "日期", "物流中心编码", "货代名称"].map(|t| col(t).first_non_null().alias(t));
@@ -55,15 +73,32 @@ impl UserInput {
         use polars::prelude::*;
 
         // 从"账单类型" 为 报关费 的条件中过滤出相关信息
-        let customs_bill = self.bill.clone().lazy().group_by(["报关周次"]).agg([
-            col("运单号").str().join(",", false).alias("运单号"),
-            col("货代名称").first_non_null().alias("货代名称"),
-            col("单价").first_non_null().alias("金额"),
-        ]);
+        let bill = self.bill.clone().lazy();
+        let custom_no_with_shipment = bill
+            .clone()
+            .group_by(["报关周次"])
+            .agg([col("运单号").unique_stable().str().join(",", false)]);
+        let customs_bill = bill
+            .filter(col("账单类型").eq(lit("报关费")))
+            .group_by(["报关周次"])
+            .agg([
+                col("货代名称").first_non_null().alias("货代名称"),
+                col("单价").first_non_null().alias("金额"),
+            ])
+            .left_join(custom_no_with_shipment, "报关周次", "报关周次");
+        // {
+        //     let mut file = std::fs::File::create("data/test/customs_bill.csv").unwrap();
+        //     let mut df = customs_bill.clone().collect()?;
+        //     CsvWriter::new(&mut file).finish(&mut df)?;
+        // }
         let customs_shipment = self.shipment.clone().lazy().group_by(["报关周次"]).agg([
             col("货代名称").first_non_null().alias("货代名称"),
             col("报关费").first_non_null().alias("金额"),
-            col("运单号").str().join(",", false).alias("运单号"),
+            col("运单号")
+                .unique_stable()
+                .str()
+                .join(",", false)
+                .alias("运单号"),
         ]);
         Ok((
             CUSTOMS_SCHEMA.validate(customs_bill)?,
@@ -90,11 +125,16 @@ fn patch_shipment(shipment: DataFrame, relation: &DataFrame) -> Result<DataFrame
 fn patch_bill(bill: DataFrame, relation: &DataFrame) -> Result<DataFrame> {
     use polars::prelude::*;
     // 补充cusoms_no列
-    let relation =
-        relation
-            .clone()
-            .lazy()
-            .select([col("报关周次"), col("运单号"), col("货代名称")]);
+    // println!("to patched bill is : {}", bill);
+    let relation = relation
+        .clone()
+        .lazy()
+        .select([col("报关周次"), col("运单号"), col("货代名称")])
+        .group_by(["运单号"])
+        .agg([
+            col("报关周次").first_non_null(),
+            col("货代名称").first_non_null(),
+        ]);
     let df = bill
         .lazy()
         .left_join(relation, "运单号", "运单号")

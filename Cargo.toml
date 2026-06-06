@@ -17,10 +17,13 @@ polars = { version = "0.53.0", features = [
     "dtype-struct",
     "regex",
     "concat_str",
-    "dtype-categorical","dtype-u8","abs"
+    "dtype-categorical","dtype-u8","abs", "csv"
 ] }
 serde = { version = "1.0.228", features = ["derive"] }
 thiserror = "2.0.18"
+polars_excel_writer = "0.25.0"
+rust_xlsxwriter = "0.95.0"
+# UI
 slint = "1.16.1"
 # 在slint 1.17 版本后删除此依赖
 icu_provider = { version = "2", features = ["logging"] }

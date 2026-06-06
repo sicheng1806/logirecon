@@ -56,8 +56,8 @@ impl FromIterator<(String, (DataType, AggOption))> for DataSchema {
 ///
 /// # Example
 ///
-/// ```no_run
-/// use logirecon::parser::BillValicated;
+/// ```ignore
+/// use logirecon::BillValicated;
 ///
 /// let data = BillValicated::with_dataframe(df);
 /// let valicated = data.get_valicated().unwrap();

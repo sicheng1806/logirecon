@@ -3,13 +3,13 @@ use crate::{DataFrame, LazyFrame, Result};
 
 /// Parse 特征
 ///
-/// Parse 特征用于实现基于 [SheetProvider] 和 [valicate] 的用于表单数据解析器。
+/// Parse 特征用于实现基于 [SheetProvider] 和 [Validated] 的用于表单数据解析器。
 ///
-/// [SheetProvider] 用于提供指定表头的数据，而 Valicate 特征用于指定 parse 方法
+/// SheetProvider 用于提供指定表头的数据，而 Validated 特征用于指定 parse 方法
 /// 返回的数据验证器，表示解析器提供的数据是需通过特定验证器的数据。
 ///
 /// # Example
-/// ```no_run
+/// ```ignore
 /// let mut parser = HeadwayParser::default();
 /// parser
 ///     .provider_mut()

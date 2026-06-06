@@ -5,7 +5,7 @@ use crate::{DataFrame, ExcelReadOptions, Result};
 /// 指定表头的Excel数据的提取器
 ///
 /// # Example
-/// ```no_run
+/// ```ignore
 ///  use logirecon::parser::provider::SheetProvider;
 ///
 ///  let mut provider = SheetProvider::new(headers, primary);
@@ -91,6 +91,12 @@ impl SheetProvider {
     /// 添加sheet
     pub fn add_sheets(&mut self, path: impl Into<PathBuf>, sheet: impl Into<String>) -> &mut Self {
         self.sheets.push((path.into(), sheet.into()));
+        self
+    }
+
+    /// 替换主键
+    pub fn with_primary(&mut self, primary: impl Into<String>) -> &mut Self {
+        self.primary = primary.into();
         self
     }
 

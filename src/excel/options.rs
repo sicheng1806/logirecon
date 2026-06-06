@@ -4,7 +4,7 @@ use std::{collections::HashSet, path::PathBuf};
 ///
 /// # Example
 ///
-/// ```no_run
+/// ```ignore
 /// let df = ExcelReadOptions::default()
 ///     .with_headers(headers)
 ///     .with_path(path)

@@ -86,10 +86,10 @@ impl Reconsiler {
         let right = right.clone().lazy().select(select_expr(right_name));
 
         let both_expr = when(col(name_suf(left_name, pk)).is_null())
-            .then(lit(left_name))
+            .then(lit(right_name))
             .otherwise(
                 when(col(name_suf(right_name, pk)).is_null())
-                    .then(lit(right_name))
+                    .then(lit(left_name))
                     .otherwise(lit("both")),
             )
             .alias("_both");
@@ -146,7 +146,10 @@ impl Reconsiler {
         let summary_expr = when(col("_both").eq(lit("both")))
             .then(concat_str(
                 self.iter_reconsiled()
-                    .map(|(name, _)| col(name_suf(name, "diff")))
+                    .map(|(name, _)| {
+                        format_str("{}:{}", [lit(name.as_str()), col(name_suf(name, "diff"))])
+                            .unwrap()
+                    })
                     .collect::<Vec<_>>(),
                 ";",
                 true,

@@ -32,4 +32,11 @@ impl From<calamine::Error> for Error {
     }
 }
 
+impl From<rust_xlsxwriter::XlsxError> for Error {
+    fn from(value: rust_xlsxwriter::XlsxError) -> Self {
+        let msg = value.to_string();
+        Self::IO(msg)
+    }
+}
+
 pub type Result<T, E = Error> = std::result::Result<T, E>;

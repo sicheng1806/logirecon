@@ -57,7 +57,7 @@ static SHIPMENT_SCHEMA: LazyLock<DataSchema> = LazyLock::new(|| {
         //
         ("件数", (DataType::Float64, AggOption::BySum)),
         ("计费重", (DataType::Float64, AggOption::BySum)),
-        ("单价", (DataType::Float64, AggOption::BySum)),
+        ("单价", (DataType::Float64, AggOption::ByFirst)),
         ("报关费", (DataType::Float64, AggOption::ByFirst)),
     ];
     DataSchema::from_iter(iter.map(|(n, s)| (n.to_string(), s)))

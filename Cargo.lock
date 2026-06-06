@@ -3232,6 +3232,8 @@ dependencies = [
  "icu_provider",
  "log",
  "polars",
+ "polars_excel_writer",
+ "rust_xlsxwriter 0.95.0",
  "serde",
  "slint",
  "slint-build",
@@ -3245,6 +3247,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fae87c125b03c1d2c0150c90365d7d6bcc53fb73a9acaef207d2d065860f062"
 dependencies = [
  "imgref",
+]
+
+[[package]]
+name = "lru"
+version = "0.16.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f66e8d5d03f609abc3a39e6f08e4164ebf1447a732906d39eb9b99b7919ef39"
+dependencies = [
+ "hashbrown 0.16.1",
 ]
 
 [[package]]
@@ -4792,6 +4803,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "polars_excel_writer"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88da36385e9551a6bf8a854185f2de318d16e88ba8a5db07844c91f7de054174"
+dependencies = [
+ "chrono",
+ "polars",
+ "polars-arrow",
+ "rust_xlsxwriter 0.94.1",
+]
+
+[[package]]
 name = "polling"
 version = "3.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5409,6 +5432,27 @@ dependencies = [
  "snafu",
  "unicode-linebreak",
  "unicode-width",
+]
+
+[[package]]
+name = "rust_xlsxwriter"
+version = "0.94.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b61e4bcbf5d8d3d2149ffa462e1cec5259108e59f03af9e4e4ddebe6cd7c67f7"
+dependencies = [
+ "chrono",
+ "polars",
+ "ssfmt",
+ "zip",
+]
+
+[[package]]
+name = "rust_xlsxwriter"
+version = "0.95.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f281b687352597d29efaad39701d1167d5c48aa76fb973e392bc13e9d44e7f36"
+dependencies = [
+ "zip",
 ]
 
 [[package]]
@@ -6060,6 +6104,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "ssfmt"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8cafd85a137485737308ec6b94c19639833ca96bb83cbad2bc94a0e0eb763410"
+dependencies = [
+ "chrono",
+ "lru",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
