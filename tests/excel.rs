@@ -1,4 +1,4 @@
-use logirecon::parser::provider::SheetProvider;
+use logirecon::parse::provider::SheetProvider;
 use logirecon::{ExcelReadOptions, Result};
 
 mod common;

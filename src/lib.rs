@@ -1,6 +1,7 @@
 pub mod error;
 pub mod excel;
-pub mod parser;
+pub mod parse;
+pub mod reconsile;
 
 // reuse
 pub use error::{Error, Result};

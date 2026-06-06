@@ -8,6 +8,8 @@ pub enum Error {
     IO(String),
     #[error("{0}")]
     Other(String),
+    #[error("实现错误: {0}")]
+    Impl(String),
 }
 
 impl From<&str> for Error {

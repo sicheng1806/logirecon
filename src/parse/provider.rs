@@ -1,8 +1,6 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use polars::frame::DataFrame;
-
-use crate::{ExcelReadOptions, Result};
+use crate::{DataFrame, ExcelReadOptions, Result};
 
 /// 指定表头的Excel数据的提取器
 ///
@@ -115,7 +113,7 @@ impl SheetProvider {
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::provider::SheetProvider;
+    use super::*;
 
     #[test]
     fn test_build() {

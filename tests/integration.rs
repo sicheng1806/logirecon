@@ -1,8 +1,11 @@
 use logirecon::{
     Result,
-    parser::{
+    parse::{
         BillValidated, HeadwayParser, Parse, ShipmentValidated, Validated, WBParser,
         user_input::UserInput,
+    },
+    reconsile::{
+        CUSTOMS_RECONSILE_COLUMNS, FREIGHT_RECONSILE_COLUMNS, ReconsileColumn, ReconsileOption,
     },
 };
 
@@ -45,6 +48,30 @@ fn test_user_input() -> Result<()> {
     println!("customs bill : {}", customs_bill);
     println!("customs headway : {}", customs_headway);
 
+    Ok(())
+}
+
+#[test]
+fn test_reconsile() -> Result<()> {
+    let bill = get_bill()?;
+    let shipment = get_shipment()?;
+    let user_input = UserInput::new(bill, shipment)?;
+    let (freight_bill, freight_headway) = user_input.get_freight()?;
+    let freight_reconsiler = ReconsileOption::new_with_columns(FREIGHT_RECONSILE_COLUMNS)
+        .left(freight_bill, "物流")
+        .right(freight_headway, "我方")
+        .try_into_reconsiler()?
+        .build_result()?;
+    let freight_res = freight_reconsiler.get_long_result()?;
+    println!("{}", freight_res);
+    let (customs_bill, customs_headway) = user_input.get_customs()?;
+    let customs_res = ReconsileOption::new_with_columns(CUSTOMS_RECONSILE_COLUMNS)
+        .left(customs_bill, "物流")
+        .right(customs_headway, "我方")
+        .try_into_reconsiler()?
+        .build_result()?
+        .get_long_result()?;
+    println!("{}", customs_res);
     Ok(())
 }
 
