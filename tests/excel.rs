@@ -73,7 +73,6 @@ fn test_provider() -> Result<()> {
 fn test_write() -> Result<()> {
     use chrono::prelude::*;
     use polars::prelude::*;
-    use polars_excel_writer::PolarsExcelWriter;
     let df: DataFrame = df!(
         "String" => &["North", "South", "East", "West"],
         "Integer" => &[1, 2, 3, 4],
@@ -98,6 +97,7 @@ fn test_write() -> Result<()> {
         ],
     )?;
 
+    use polars_excel_writer::PolarsExcelWriter;
     // Create a new Excel writer.
     let mut excel_writer = PolarsExcelWriter::new();
     excel_writer.set_worksheet_name("Sheet Name")?;

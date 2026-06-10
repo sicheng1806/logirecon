@@ -1,0 +1,10 @@
+[package]
+name = "logirecon_gui"
+description = "logirecon的GUI工具，基于Iced"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+iced.workspace = true
+# uuid.workspace = true

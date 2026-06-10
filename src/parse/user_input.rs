@@ -1,5 +1,5 @@
 use super::{BillValidated, CUSTOMS_SCHEMA, FREIGHT_SCHEMA, ShipmentValidated, Validated};
-use crate::{DataFrame, Result};
+use crate::{DataFrame, Error, Result};
 
 /// 用户输入整合解析
 ///
@@ -19,16 +19,19 @@ impl DataRepo {
         use polars::prelude::*;
         // 获取验证数据并合并
         let mut raw_bills = vec![];
-        let mut raw_shipmetns = vec![];
+        let mut raw_shipments = vec![];
         for bill in bills.into_iter() {
             raw_bills.push(bill.get_valicated()?.lazy());
         }
         for shipment in shipments.into_iter() {
-            raw_shipmetns.push(shipment.get_valicated()?.lazy());
+            raw_shipments.push(shipment.get_valicated()?.lazy());
+        }
+        if raw_bills.len() == 0 || raw_shipments.len() == 0 {
+            return Err(Error::Process("请先输入数据".into()));
         }
 
         let bill = concat(raw_bills, UnionArgs::default())?.collect()?;
-        let shipment = concat(raw_shipmetns, UnionArgs::default())?.collect()?;
+        let shipment = concat(raw_shipments, UnionArgs::default())?.collect()?;
 
         // parse
         let relation: DataFrame = build_relation(&bill, &shipment)?;

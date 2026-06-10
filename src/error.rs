@@ -32,6 +32,7 @@ impl From<calamine::Error> for Error {
     }
 }
 
+#[cfg(feature = "excel_write")]
 impl From<rust_xlsxwriter::XlsxError> for Error {
     fn from(value: rust_xlsxwriter::XlsxError) -> Self {
         let msg = value.to_string();
