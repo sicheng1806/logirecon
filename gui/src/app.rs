@@ -63,6 +63,7 @@ pub struct SaveState {
 pub enum Message {
     DetailMessage(usize, DetailMessage),
     RunMessage(RunMessage),
+    Reset,
     Save,
     Saved(Result<(), SaveError>),
 }
@@ -137,6 +138,10 @@ impl State {
                 }
                 iced::window::latest().and_then(iced::window::close)
             }
+            Message::Reset => {
+                *self = Self::default();
+                Task::none()
+            }
             Message::DetailMessage(i, detail_message) => {
                 if let Some(detail) = self.details.get_mut(i) {
                     detail
@@ -160,9 +165,13 @@ impl State {
             .size(H1_SIZE);
         let tail = row![
             space::horizontal(),
+            button("重置")
+                .style(button::secondary)
+                .on_press(Message::Reset),
             button("运行").on_press(Message::RunMessage(RunMessage::Run)),
             space().width(5. * SPACING)
         ]
+        .spacing(2. * SPACING)
         .width(Fill);
         let details: Element<_> = row(self
             .details
@@ -234,7 +243,13 @@ impl Default for State {
             details: [
                 BillDetails {
                     title: "物流账单".into(),
-                    avaliable_templates: vec![ParserType::WB].into(),
+                    avaliable_templates: vec![
+                        ParserType::WB,
+                        ParserType::TS,
+                        ParserType::DDD,
+                        ParserType::GRT,
+                    ]
+                    .into(),
                     current_template: None,
                     templates: vec![],
                 },

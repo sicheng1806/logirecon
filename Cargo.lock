@@ -2473,6 +2473,7 @@ dependencies = [
  "chrono",
  "log",
  "polars",
+ "polars_excel_writer",
  "rust_xlsxwriter 0.95.0",
  "serde",
  "thiserror 2.0.18",

@@ -25,14 +25,14 @@ pub const FREIGHT_RECONSILE_COLUMNS: [(&str, ReconsileColumn); 8] = [
     ("日期", ReconsileColumn::None),
     ("物流中心编码", ReconsileColumn::None),
     ("货代名称", ReconsileColumn::None),
-    ("件数", ReconsileColumn::Numberic(0.)),
-    ("单价", ReconsileColumn::Numberic(0.)),
-    ("计费重", ReconsileColumn::Numberic(0.)),
+    ("件数", ReconsileColumn::Numberic(0.001)),
+    ("单价", ReconsileColumn::Numberic(0.001)),
+    ("计费重", ReconsileColumn::Numberic(0.001)),
 ];
 
 pub const CUSTOMS_RECONSILE_COLUMNS: [(&str, ReconsileColumn); 4] = [
     ("报关周次", ReconsileColumn::PK),
     ("运单号", ReconsileColumn::None),
     ("货代名称", ReconsileColumn::None),
-    ("金额", ReconsileColumn::Numberic(0.)),
+    ("金额", ReconsileColumn::Numberic(0.001)),
 ];

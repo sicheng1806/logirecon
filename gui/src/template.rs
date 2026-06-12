@@ -40,44 +40,35 @@ pub enum TemplateMessage {
 
 impl Template {
     pub fn new(temp_type: ParserType) -> Self {
-        match temp_type {
-            ParserType::WB => {
-                let iter = [
-                    "日期",
-                    "运单号",
-                    "订单号",
-                    "仓库编码",
-                    "件数",
-                    "收费重",
-                    "单价",
-                ];
-                Self {
-                    id: uuid::Uuid::new_v4(),
-                    parser_type: temp_type,
-                    headers: HashMap::from_iter(iter.map(|t| (t.to_string(), t.to_string()))),
-                    sheets: vec![],
-                    show_header_view: false,
-                }
+        use logirecon_core::{DDDParser, HeadwayParser, TSParser, WBParser};
+        let headers: HashMap<String, String> = match temp_type {
+            ParserType::WB => HashMap::from_iter(
+                WBParser::DEFAULT_HEADERS.map(|t| (t.to_string(), t.to_string())),
+            ),
+            ParserType::Headway => HashMap::from_iter(
+                HeadwayParser::DEFAULT_HEADERS.map(|t| (t.to_string(), t.to_string())),
+            ),
+            ParserType::TS => HashMap::from_iter(
+                TSParser::DEFAULT_HEADERS.map(|t| (t.to_string(), t.to_string())),
+            ),
+            ParserType::DDD => HashMap::from_iter(
+                DDDParser::DEFAULT_HEADERS.map(|t| (t.to_string(), t.to_string())),
+            ),
+            ParserType::GRT => {
+                let mut headers = HashMap::from_iter(
+                    WBParser::DEFAULT_HEADERS.map(|t| (t.to_string(), t.to_string())),
+                );
+                headers.insert("订单号".to_string(), "扩展单号".to_string());
+                headers.insert("仓库编码".to_string(), "地址编码".to_string());
+                headers
             }
-            ParserType::Headway => {
-                let iter = [
-                    "报关周次",
-                    "货件单号",
-                    "物流中心编码",
-                    "箱数",
-                    "货件计费重",
-                    "物流单价",
-                    "报关费",
-                    "提货时间",
-                ];
-                Self {
-                    id: uuid::Uuid::new_v4(),
-                    parser_type: temp_type,
-                    headers: HashMap::from_iter(iter.map(|t| (t.to_string(), t.to_string()))),
-                    sheets: vec![],
-                    show_header_view: false,
-                }
-            }
+        };
+        Self {
+            id: uuid::Uuid::new_v4(),
+            parser_type: temp_type,
+            headers,
+            sheets: vec![],
+            show_header_view: false,
         }
     }
 

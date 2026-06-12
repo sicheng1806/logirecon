@@ -1,6 +1,7 @@
 mod common;
 use common::*;
 
+use logirecon_core as logirecon;
 use std::{collections::HashMap, path::PathBuf};
 
 pub struct UserData {

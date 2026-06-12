@@ -26,8 +26,11 @@ impl DataRepo {
         for shipment in shipments.into_iter() {
             raw_shipments.push(shipment.get_valicated()?.lazy());
         }
-        if raw_bills.is_empty() || raw_shipments.is_empty() {
-            return Err(Error::Process("请先输入数据".into()));
+        if raw_bills.is_empty() {
+            return Err(Error::Process("物流账单数据为空".to_string()));
+        }
+        if raw_shipments.is_empty() {
+            return Err(Error::Process("我方明细数据为空".into()));
         }
 
         let bill = concat(raw_bills, UnionArgs::default())?.collect()?;

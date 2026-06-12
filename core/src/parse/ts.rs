@@ -1,40 +1,39 @@
 use super::{BillValidated, Parse, SheetProvider};
 use crate::{LazyFrame, Result};
 
-/// 万邦数据解析器
+/// 天盛数据解析器
 ///
-/// 默认表头: [WBParser::DEFAULT_HEADERS]
-pub struct WBParser {
+/// 默认表头: [TSParser::DEFAULT_HEADERS]
+pub struct TSParser {
     pub provider: SheetProvider,
     pub datefmt: String,
     pub units: (String, String),
-    pub forwarder: String,
 }
 
-impl WBParser {
-    pub const DEFAULT_HEADERS: [&str; 7] = [
+impl TSParser {
+    pub const DEFAULT_HEADERS: [&str; 8] = [
         "日期",
         "运单号",
-        "订单号",
-        "仓库编码",
+        "客户运单号",
+        "地址编码",
         "件数",
         "收费重",
         "单价",
+        "单位",
     ];
 }
 
-impl Default for WBParser {
+impl Default for TSParser {
     fn default() -> Self {
         Self {
             provider: SheetProvider::new(Self::DEFAULT_HEADERS, "序号"),
-            datefmt: "%Y/%m/%d".into(),
-            units: ("KG".into(), "票".into()),
-            forwarder: "万邦".into(),
+            datefmt: "%Y-%m-%d".into(),
+            units: (r#"(KG|立方|kg)"#.to_string(), r#"(票)"#.to_string()),
         }
     }
 }
 
-impl Parse<BillValidated> for WBParser {
+impl Parse<BillValidated> for TSParser {
     fn provider(&self) -> &SheetProvider {
         &self.provider
     }
@@ -47,7 +46,7 @@ impl Parse<BillValidated> for WBParser {
         use polars::prelude::*;
         let datefmt = &self.datefmt;
         let units = &self.units;
-        let forwarder = self.forwarder.as_str();
+        let forwarder = "天盛";
         let name_mapping = self.provider.headers();
 
         // 日期
@@ -63,7 +62,7 @@ impl Parse<BillValidated> for WBParser {
         // 运单号
         let waybill_no = col("运单号").str().strip_chars(lit(" ")).alias("运单号");
         // 货件单号
-        let order_no = col("订单号")
+        let order_no = col("客户运单号")
             .str()
             .strip_chars(lit(" "))
             .str()
@@ -72,23 +71,18 @@ impl Parse<BillValidated> for WBParser {
             .replace_all(lit("，"), lit(","), true)
             .alias("货件单号");
         // 物流中心编码
-        let warehouse_code = col("仓库编码")
+        let warehouse_code = col("地址编码")
             .str()
             .strip_chars(lit(" "))
             .alias("物流中心编码");
         // 货代名称
         let forwarder = lit(forwarder).alias("货代名称");
-        // 单价分列
-        let split_unit_price = col("单价")
-            .str()
-            .splitn(lit("/"), 2)
-            .struct_()
-            .rename_fields(["单价", "账单类型"])
-            .alias("to_split");
+        // 单价
+        let unit_price = col("单价").alias("单价");
         // 账单类型
-        let btype_col = when(col("账单类型").eq(lit(units.0.as_str())))
-            .then(lit("运费"))
-            .otherwise(lit("报关费"))
+        let bill_type = when(col("单位").str().contains(lit(units.1.as_str()), false))
+            .then(lit("报关费"))
+            .otherwise(lit("运费"))
             .alias("账单类型");
         // 件数
         let n_pieces = col("件数").alias("件数");
@@ -108,10 +102,9 @@ impl Parse<BillValidated> for WBParser {
                 forwarder,
                 n_pieces,
                 weight,
-                split_unit_price,
-            ])
-            .unnest(cols(["to_split"]), None)
-            .with_column(btype_col);
+                bill_type,
+                unit_price,
+            ]);
         // dbg!(&df);
         Ok(df)
     }

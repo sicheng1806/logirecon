@@ -1,8 +1,7 @@
 mod common;
 use common::*;
-use logirecon::{
-    BillValidated, HeadwayParser, Parse, Result, ShipmentValidated, Validated, WBParser,
-};
+use logirecon::Result;
+use logirecon_core::{self as logirecon, BillValidated, ShipmentValidated};
 
 #[test]
 fn test_get_bill() -> Result<()> {
@@ -12,6 +11,46 @@ fn test_get_bill() -> Result<()> {
     let df = wb.parse()?.get_valicated()?;
     println!("{}", df);
     assert!(df["日期"].is_not_null().all());
+    Ok(())
+}
+
+#[test]
+fn test_grt() -> Result<()> {
+    use logirecon::{Parse, Validated, WBParser};
+    let mut parser = WBParser::default();
+    parser
+        .provider_mut()
+        .add_sheets(PATH_BILLS, SHEET_GRT)
+        .update_headers([("订单号", "扩展单号"), ("仓库编码", "地址编码")]);
+    let df = parser.parse()?.get_valicated()?;
+    println!("{}", df);
+    assert!(df["日期"].is_not_null().all());
+    Ok(())
+}
+
+#[test]
+fn test_ts() -> Result<()> {
+    use logirecon::{Parse, TSParser, Validated};
+    let mut parser = TSParser::default();
+    parser
+        .provider_mut()
+        .add_sheets(PATH_BILLS, SHEET_TSBG)
+        .add_sheets(PATH_BILLS, SHEET_TSYF);
+    let df = parser.parse()?.get_valicated()?;
+    println!("{}", df);
+    assert!(df["日期"].is_not_null().all());
+    Ok(())
+}
+
+#[test]
+fn test_ddd() -> Result<()> {
+    use logirecon::{DDDParser, Parse, Validated};
+    let mut parser = DDDParser::default();
+    parser.provider_mut().add_sheets(PATH_BILLS, SHEET_DDD);
+    let df = parser.parse()?.get_valicated()?;
+    println!("{}", df);
+    assert!(df["日期"].is_not_null().all());
+    assert_eq!(df.height(), 24);
     Ok(())
 }
 
@@ -31,7 +70,7 @@ fn test_get_shipment() -> Result<()> {
 
 #[test]
 fn test_user_input() -> Result<()> {
-    use logirecon::DataRepo;
+    use logirecon::{DataRepo, Validated};
     let bill = get_bill()?;
     {
         // 判断一些必定存在的运单号
@@ -121,6 +160,7 @@ fn test_reconsile() -> Result<()> {
 }
 
 fn get_shipment() -> Result<ShipmentValidated> {
+    use logirecon::{HeadwayParser, Parse};
     let mut parser = HeadwayParser::default();
     parser
         .provider_mut()
@@ -131,6 +171,7 @@ fn get_shipment() -> Result<ShipmentValidated> {
 }
 
 fn get_bill() -> Result<BillValidated> {
+    use logirecon::{Parse, WBParser};
     let mut parser = WBParser::default();
     parser.provider_mut().add_sheets(PATH_BILLS, SHEET_WB);
     let bill = parser.parse()?;

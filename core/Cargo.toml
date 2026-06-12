@@ -14,5 +14,8 @@ serde.workspace = true
 thiserror.workspace = true
 rust_xlsxwriter = {workspace = true, optional = true}
 
+[dev-dependencies]
+polars_excel_writer.workspace = true
+
 [features]
 excel_write = ["rust_xlsxwriter"]

@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 
 use iced::{
-    Color, Element, Font, Theme, font,
+    Element, Font, Theme, font,
     widget::{button, center, container, mouse_area, opaque, stack, svg, table, text},
 };
 
@@ -31,23 +31,26 @@ pub struct UserData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ParserType {
     WB,
+    TS,
+    GRT,
+    DDD,
     Headway,
 }
 
 impl std::fmt::Display for ParserType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Headway => write!(f, "头程明细"),
-            Self::WB => write!(f, "万邦"),
-        }
+        write!(f, "{}", self.name())
     }
 }
 
 impl ParserType {
     pub fn name(&self) -> &str {
         match self {
-            Self::Headway => "物流头程",
+            Self::Headway => "头程明细",
             Self::WB => "万邦",
+            Self::TS => "天盛",
+            Self::DDD => "嘀嗒嘀",
+            Self::GRT => "国润通",
         }
     }
 }
@@ -75,21 +78,7 @@ where
 {
     stack![
         base.into(),
-        opaque(
-            mouse_area(center(opaque(content)).style(|_theme| {
-                container::Style {
-                    background: Some(
-                        Color {
-                            a: 0.8,
-                            ..Color::BLACK
-                        }
-                        .into(),
-                    ),
-                    ..container::Style::default()
-                }
-            }))
-            .on_press(on_blur)
-        )
+        opaque(mouse_area(center(opaque(content)).style(container::rounded_box)).on_press(on_blur))
     ]
     .into()
 }
@@ -111,7 +100,7 @@ where
         .enumerate()
         .map(|(i, t)| {
             table::column(bold(t.to_string()), move |row: Vec<AnyValue<'_>>| {
-                text(row[i].to_string())
+                text(format!("{}", row[i]))
             })
         })
         .collect();

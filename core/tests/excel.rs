@@ -1,3 +1,5 @@
+use logirecon_core as logirecon;
+
 use logirecon::parse::provider::SheetProvider;
 use logirecon::{ExcelReadOptions, Result};
 
