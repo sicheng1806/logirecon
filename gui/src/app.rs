@@ -337,7 +337,7 @@ impl SaveState {
     }
 
     async fn save(self) -> Result<(), SaveError> {
-        use iced::time::milliseconds;
+        // use iced::time::milliseconds;
 
         let json = serde_json::to_string_pretty(&self).map_err(|_| SaveError::Format)?;
 
@@ -356,7 +356,7 @@ impl SaveState {
         }
 
         // This is a simple way to save at most twice every second
-        tokio::time::sleep(milliseconds(500)).await;
+        // tokio::time::sleep(milliseconds(500)).await;
 
         Ok(())
     }

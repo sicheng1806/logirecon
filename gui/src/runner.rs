@@ -28,7 +28,6 @@ pub enum RunMessage {
 
     Dump(DumpType),
     Dumped(DumpResult),
-    ShowDumpResult,
     HideDumpResult,
 }
 
@@ -95,11 +94,6 @@ impl Runner {
             RunMessage::Dumped(res) => {
                 self.dumpping = false;
                 self.dump_result = Some(res);
-                self.show_dump_result = true;
-                Task::done(RunMessage::ShowDumpResult)
-            }
-
-            RunMessage::ShowDumpResult => {
                 self.show_dump_result = true;
                 Task::none()
             }
