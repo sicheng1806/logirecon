@@ -1,5 +1,5 @@
 pub mod headway;
-pub mod parse;
+pub mod parse_trait;
 pub mod provider;
 pub mod user_input;
 pub mod validate;
@@ -10,7 +10,7 @@ use std::sync::LazyLock;
 
 // reuse
 pub use headway::HeadwayParser;
-pub use parse::Parse;
+pub use parse_trait::Parse;
 pub use provider::SheetProvider;
 pub use validate::{BillValidated, DataSchema, ShipmentValidated, Validated};
 pub use wb::WBParser;

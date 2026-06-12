@@ -70,7 +70,7 @@ pub fn data_to_series(
     datas: impl IntoIterator<Item = Data>,
 ) -> Result<Series> {
     let datas: Vec<Data> = datas.into_iter().collect();
-    if datas.len() == 0 {
+    if datas.is_empty() {
         return Ok(Series::new_empty(name.into(), &PlDataType::String));
     }
     // 确定列类型

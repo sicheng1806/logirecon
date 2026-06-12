@@ -1,30 +1,19 @@
 mod common;
 use common::*;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum BillSheet {
+pub struct UserData {
+    pub parser_type: ParserType,
+    pub headers: HashMap<String, String>,
+    pub sheets: Vec<(PathBuf, String)>,
+    pub primary: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ParserType {
     WB,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum ShipmentSheet {
     Headway,
-}
-
-pub struct BillUserData {
-    pub stype: BillSheet,
-    pub headers: HashMap<String, String>,
-    pub sheets: Vec<(String, String)>,
-    pub primary: String,
-}
-
-pub struct ShipmentUserData {
-    pub stype: ShipmentSheet,
-    pub headers: HashMap<String, String>,
-    pub sheets: Vec<(String, String)>,
-    pub primary: String,
 }
 
 #[test]
@@ -33,17 +22,17 @@ fn test_main() -> Result<(), Box<dyn std::error::Error>> {
     use logirecon::{DataRepo, HeadwayParser, Parse, ReconsileOption, WBParser};
     use polars_excel_writer::PolarsExcelWriter;
     // 模拟UI返回的用户输入结构体
-    let bills: Vec<BillUserData> = vec![BillUserData {
-        stype: BillSheet::WB,
+    let bills: Vec<UserData> = vec![UserData {
+        parser_type: ParserType::WB,
         headers: HashMap::from_iter(
             WBParser::DEFAULT_HEADERS.map(|t| (t.to_string(), t.to_string())),
         ),
-        sheets: vec![(PATH_BILLS.to_string(), SHEET_WB.to_string())],
+        sheets: vec![(PATH_BILLS.into(), SHEET_WB.to_string())],
         primary: "序号".to_string(),
     }];
 
-    let shipments = vec![ShipmentUserData {
-        stype: ShipmentSheet::Headway,
+    let shipments = vec![UserData {
+        parser_type: ParserType::Headway,
         headers: HashMap::from_iter(HeadwayParser::DEFAULT_HEADERS.map(|t| {
             if t != "报关费" {
                 (t.to_string(), t.to_string())
@@ -51,14 +40,15 @@ fn test_main() -> Result<(), Box<dyn std::error::Error>> {
                 (t.to_string(), "报关或其他费".to_string())
             }
         })),
-        sheets: vec![(PATH_HEADWAY.to_string(), SHEET_HEADWAY_2026.to_string())],
+        sheets: vec![(PATH_HEADWAY.into(), SHEET_HEADWAY_2026.to_string())],
         primary: "序号".to_string(),
     }];
 
     // parse
     let bills = bills.into_iter().filter_map(|data| {
-        let mut parser = match data.stype {
-            BillSheet::WB => WBParser::default(),
+        let mut parser = match data.parser_type {
+            ParserType::WB => WBParser::default(),
+            _ => return None,
         };
         parser
             .provider_mut()
@@ -70,8 +60,9 @@ fn test_main() -> Result<(), Box<dyn std::error::Error>> {
         parser.parse().ok()
     });
     let shipments = shipments.into_iter().filter_map(|data| {
-        let mut parser = match data.stype {
-            ShipmentSheet::Headway => HeadwayParser::default(),
+        let mut parser = match data.parser_type {
+            ParserType::Headway => HeadwayParser::default(),
+            _ => return None,
         };
         parser
             .provider_mut()

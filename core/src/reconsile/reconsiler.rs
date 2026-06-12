@@ -47,7 +47,7 @@ impl Reconsiler {
             .iter_names()
             .map(|name| name.to_string())
             .collect();
-        let names: HashSet<_> = columns.iter().map(|(t, _)| t.to_string()).collect();
+        let names: HashSet<_> = columns.keys().map(|t| t.to_string()).collect();
         if left_names != names {
             return Err(Error::Impl("左数据框不匹配列名".into()));
         }

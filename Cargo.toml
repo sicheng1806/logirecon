@@ -7,30 +7,27 @@ authors.workspace = true
 
 [dependencies]
 logirecon_gui = {workspace = true, optional = true}
+iced = {workspace = true, optional = true}
+logirecon_core.workspace = true
 
-calamine.workspace = true
-chrono.workspace = true
-log.workspace = true
-polars.workspace = true
-serde.workspace = true
-thiserror.workspace = true
-rust_xlsxwriter = {workspace = true, optional = true}
+
 
 [dev-dependencies]
 polars_excel_writer.workspace = true
+polars.workspace = true
+chrono.workspace = true
 
 [features]
-default = []
-excel_write = ["rust_xlsxwriter"]
-gui = ["logirecon_gui"]
+default = ["gui", "excel_write"]
+excel_write = ["logirecon_core/excel_write"]
+gui = ["logirecon_gui", "iced", "excel_write"]
 
 
 [workspace]
 resolver = "2"
 members = [
-    "gui"
+    "gui","core"
 ]
-
 
 [workspace.package]
 version = "0.1.0"
@@ -39,6 +36,7 @@ authors = ["sicheng<sicheng1806@outlook.com>"]
 
 [workspace.dependencies]
 logirecon_gui = {version = "0.1.0", path = "gui"}
+logirecon_core = {version = "0.1.0", path = "core"}
 
 calamine = { version = "0.35.0", features = ["chrono"] }
 chrono = { version = "0.4.41", features = ["std"] }
@@ -54,8 +52,16 @@ polars = { version = "0.53.0", features = [
     "dtype-categorical","dtype-u8","abs", "csv"
 ] }
 serde = { version = "1.0.228", features = ["derive"] }
+serde_json = {version = "1.0.150"}
 thiserror = "2.0.18"
 polars_excel_writer = "0.25.0"
 rust_xlsxwriter = "0.95.0"
-iced = {version = "0.14.0", features = ["canvas", "svg"]}
-uuid = {version = "1.23.3", features = ["v4", "fast-rng", "serde"]}
+tokio = {version = "1.52.3"}
+tracing-subscriber = {version = "0.3.23"}
+iced = {version = "0.14.0", features = ["canvas", "svg", "tokio"]}
+
+[profile.release]
+# https://myedgetech.com/min-sized-rust/ 优化指南
+lto = true
+strip = true
+opt-level = 'z'

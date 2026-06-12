@@ -97,7 +97,7 @@ impl Parse<BillValidated> for WBParser {
         let df = dataframe
             .lazy()
             .rename(name_mapping.values(), name_mapping.keys(), true)
-            .select(&name_mapping.keys().map(|t| col(t)).collect::<Vec<_>>())
+            .select(name_mapping.keys().map(col).collect::<Vec<_>>())
             .select([
                 date,
                 waybill_no,

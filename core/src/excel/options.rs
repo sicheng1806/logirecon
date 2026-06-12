@@ -14,23 +14,12 @@ use std::{collections::HashSet, path::PathBuf};
 ///     .finish()?;
 /// println!("{}", df);
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ExcelReadOptions {
     pub headers: HashSet<String>,
     pub path: Option<PathBuf>,
     pub sheet: Option<String>,
     pub primary_key: Option<String>,
-}
-
-impl Default for ExcelReadOptions {
-    fn default() -> Self {
-        Self {
-            headers: HashSet::new(),
-            path: None,
-            sheet: None,
-            primary_key: None,
-        }
-    }
 }
 
 impl ExcelReadOptions {

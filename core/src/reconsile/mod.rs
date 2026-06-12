@@ -19,7 +19,7 @@ pub enum ReconsileColumn {
 }
 
 //
-pub const FREIGHT_RECONSILE_COLUMNS: [(&'static str, ReconsileColumn); 8] = [
+pub const FREIGHT_RECONSILE_COLUMNS: [(&str, ReconsileColumn); 8] = [
     ("运单号", ReconsileColumn::PK),
     ("货件单号", ReconsileColumn::None),
     ("日期", ReconsileColumn::None),
@@ -30,7 +30,7 @@ pub const FREIGHT_RECONSILE_COLUMNS: [(&'static str, ReconsileColumn); 8] = [
     ("计费重", ReconsileColumn::Numberic(0.)),
 ];
 
-pub const CUSTOMS_RECONSILE_COLUMNS: [(&'static str, ReconsileColumn); 4] = [
+pub const CUSTOMS_RECONSILE_COLUMNS: [(&str, ReconsileColumn); 4] = [
     ("报关周次", ReconsileColumn::PK),
     ("运单号", ReconsileColumn::None),
     ("货代名称", ReconsileColumn::None),

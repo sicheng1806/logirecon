@@ -1,0 +1,18 @@
+[package]
+name = "logirecon_core"
+description = "logirecon的核心实现"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+calamine.workspace = true
+chrono.workspace = true
+log.workspace = true
+polars.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+rust_xlsxwriter = {workspace = true, optional = true}
+
+[features]
+excel_write = ["rust_xlsxwriter"]

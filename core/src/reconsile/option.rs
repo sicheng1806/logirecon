@@ -76,6 +76,6 @@ impl ReconsileOption {
         let right = self
             .right
             .ok_or(Error::Impl("还未设置右部DataFrame".into()))?;
-        Ok(Reconsiler::new(columns, left, right)?)
+        Reconsiler::new(columns, left, right)
     }
 }

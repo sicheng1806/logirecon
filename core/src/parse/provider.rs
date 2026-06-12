@@ -73,10 +73,10 @@ impl SheetProvider {
         I: IntoIterator<Item = (S, S)>,
     {
         for (k, header) in headers.into_iter().map(|(k, v)| (k.into(), v.into())) {
-            if self.headers.contains_key(&k) {
-                if let Some(v) = self.headers.get_mut(&k) {
-                    *v = header;
-                }
+            if self.headers.contains_key(&k)
+                && let Some(v) = self.headers.get_mut(&k)
+            {
+                *v = header;
             }
         }
         self
