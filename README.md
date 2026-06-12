@@ -1,19 +1,13 @@
 # logirecon
 
-```mermaid
-stateDiagram-v2
-    Loading --> Loaded
-    state "Loaded{logistics, details}" as Loaded {
-        Run --> [*]: 运行对账程序
-        LogisticsChanged(id) --> Logistic
-        DetailChanged(id) --> Detail
-    }
+物流对账分析工具，支持Excel数据导入、自动核对和报表生成。
 
-    state "Logistic{}" as Logistic {
-        AddSheet --> [*]: 添加Sheet
-    }
+```sh
+cargo run
+```
 
-    state "Detail{}" as Detail {
-        
-    }
+或者
+
+```sh
+cargo run --release
 ```
