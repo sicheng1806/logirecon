@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use super::{ReconcileColumn, ReconcileError, Reconciler, Result};
 use crate::DataFrame;
 
-/// 生成 [reconciler] 的帮助类
+/// 用于生成 [Reconciler] 的配置类
 ///
 /// # Example
 ///

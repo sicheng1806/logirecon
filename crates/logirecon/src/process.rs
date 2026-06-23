@@ -1,3 +1,5 @@
+//! 核心业务数据转换过程
+
 use crate::DataFrame;
 use crate::validate::{
     AggOption, BillData, DataType, IntoValidated, SchemaValidator, ShipmentData,
@@ -5,6 +7,7 @@ use crate::validate::{
 use std::sync::LazyLock;
 use thiserror::Error;
 
+/// 运费数据需满足的方案
 pub static FREIGHT_SCHEMA: LazyLock<SchemaValidator> = LazyLock::new(|| {
     let iter = [
         ("运单号", (DataType::String, AggOption::PK)),
@@ -20,6 +23,7 @@ pub static FREIGHT_SCHEMA: LazyLock<SchemaValidator> = LazyLock::new(|| {
     SchemaValidator::from_iter(iter.map(|(n, s)| (n.to_string(), s)))
 });
 
+/// 报关费数据满足的方案
 pub static CUSTOMS_SCHEMA: LazyLock<SchemaValidator> = LazyLock::new(|| {
     let iter = [
         ("报关周次", (DataType::String, AggOption::PK)),
@@ -41,10 +45,9 @@ pub enum ProcessError {
 
 type Result<T, E = ProcessError> = std::result::Result<T, E>;
 
-/// 用户输入整合解析
+/// 对账数据处理器
 ///
-/// 通过获取解析器验证后的数据 [BillData], [ShipmentData]，
-/// 整合两者返回业务数据 Freight和 Customs
+/// 将[BillData], [ShipmentData] 转换为运费([FREIGHT_SCHEMA]和报关费([CUSTOMS_SCHEMA])数据
 #[derive(Debug)]
 pub struct Processor {
     bill: DataFrame,

@@ -4,7 +4,6 @@ use super::{AsHeaders, Parse};
 use crate::validate::BillData;
 
 /// 嘀嗒嘀解析器
-
 pub struct DDDParser;
 
 #[derive(Clone)]

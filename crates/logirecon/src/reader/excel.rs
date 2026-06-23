@@ -39,17 +39,19 @@ impl ExcelReader {
         }
     }
 
+    /// 设置用于确定数据表行数的主列名
     pub fn primary(mut self, name: &str) -> Self {
         self.primary = Some(name.to_string());
         self
     }
 
+    /// 从文件路径载入数据表
     pub fn load_worksheet(
         mut self,
         path: impl Into<PathBuf>,
         name: &str,
     ) -> Result<Self, ExcelError> {
-        if let Some(_) = self.data.as_ref() {
+        if self.data.is_some() {
             Err(ExcelError::DuplicateLoad)
         } else {
             let mut wb = calamine::open_workbook_auto(path.into())?;
@@ -58,6 +60,19 @@ impl ExcelReader {
         }
     }
 
+    /// 从实现了 [`Read`] + [`Seek`] 的读取器中加载工作表
+    ///
+    /// 适用于从网络流内存缓冲区等费文件路径来源读取 Excel 数据。
+    ///
+    /// # 参数
+    ///
+    /// - `rs`: 可读且可寻址的数据源
+    /// - `name`: 目标工作表名称
+    /// - `extension`: 文件扩展名，用于判断格式。支持的取值如下:
+    ///     - `"xls"` | `"xla"`: Xls 文件
+    ///     - `"xlsx"` | `"xlsm"` | `"xlam"`: Xlsx 文件
+    ///     - `"xlsb"` : Xlsb 文件
+    ///     - `"ods"`: Ods 文件
     pub fn load_worksheet_from_rs<RS>(
         mut self,
         rs: RS,
@@ -99,7 +114,7 @@ impl ExcelReader {
         } = self;
         if let Some(data) = data {
             let primary = primary.unwrap_or(headers[0].clone());
-            let headers: HashSet<String> = HashSet::from_iter(headers.into_iter());
+            let headers: HashSet<String> = HashSet::from_iter(headers);
             let (data, headers) = excel_impl::find_data_scope(data, headers, primary)?;
             let headers: HashMap<u32, String> = headers.into_iter().map(|(k, v)| (v, k)).collect();
             let df = excel_impl::read_by_data_scope(data, headers)?;

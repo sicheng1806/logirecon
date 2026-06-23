@@ -1,3 +1,7 @@
+//! 对账功能的实现
+//!
+//! 提供基于 [polars::frame::DataFrame] 的通用对账方案
+
 mod option;
 mod reconciler;
 
@@ -9,10 +13,10 @@ type Result<T, E = ReconcileError> = std::result::Result<T, E>;
 
 use thiserror::Error;
 
-/// 表示对账器各列的对账方法
+/// 数据列的对账方法
 #[derive(Debug, Clone, PartialEq)]
 pub enum ReconcileColumn {
-    /// 主键
+    /// 作为主键
     PK,
     /// 数值匹配
     Numeric(f64),

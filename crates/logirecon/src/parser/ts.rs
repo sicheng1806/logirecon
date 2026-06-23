@@ -4,7 +4,6 @@ use super::{AsHeaders, Parse};
 use crate::validate::BillData;
 
 /// 天盛解析器
-
 pub struct TSParser;
 
 #[derive(Clone)]

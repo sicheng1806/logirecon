@@ -4,7 +4,6 @@ use super::{AsHeaders, Parse};
 use crate::validate::BillData;
 
 /// 万邦解析器
-
 pub struct WBParser;
 
 #[derive(Clone)]
@@ -82,6 +81,20 @@ impl Default for WBParseConfig {
             units: ("KG".to_string(), "票".to_string()),
             forwarder: "万邦".to_string(),
             headers: WBHeaders::default(),
+        }
+    }
+}
+
+impl WBParseConfig {
+    /// 国润通模板的默认配置
+    pub fn grt() -> Self {
+        let mut headers = WBHeaders::default();
+        headers.shipment_no = "扩展单号".into();
+        headers.warehouse_code = "地址编码".into();
+        Self {
+            forwarder: "国润通".into(),
+            headers,
+            ..Default::default()
         }
     }
 }

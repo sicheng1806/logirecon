@@ -1,7 +1,10 @@
+//! 提供类型安全的业务数据框
+
 use crate::DataFrame;
 pub use polars::datatypes::DataType;
 use std::{collections::HashMap, sync::LazyLock};
 
+/// 账单数据需满足的方案
 pub static BILL_SCHEMA: LazyLock<SchemaValidator> = LazyLock::new(|| {
     use polars::prelude::FrozenCategories;
     let fcats = FrozenCategories::new(["运费", "报关费"]).unwrap();
@@ -26,6 +29,7 @@ pub static BILL_SCHEMA: LazyLock<SchemaValidator> = LazyLock::new(|| {
     SchemaValidator::from_iter(iter.map(|(n, s)| (n.to_string(), s)))
 });
 
+/// 货单数据需满足的方案
 pub static SHIPMENT_SCHEMA: LazyLock<SchemaValidator> = LazyLock::new(|| {
     let iter = [
         ("货件单号", (DataType::String, AggOption::PK)),
@@ -111,7 +115,9 @@ impl FromIterator<(String, (DataType, AggOption))> for SchemaValidator {
     }
 }
 
+/// 基于账单组织的对账数据
 pub struct BillData(pub DataFrame);
+/// 基于货件组织的对账数据
 pub struct ShipmentData(pub DataFrame);
 
 impl IntoValidated for BillData {

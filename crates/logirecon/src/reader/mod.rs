@@ -1,4 +1,4 @@
-//！ 用于从各种数据载体读取所需数据的IO功能
+//! 支持的数据读取器
 
 pub mod excel;
 mod excel_impl;
