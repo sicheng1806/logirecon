@@ -1,0 +1,176 @@
+user: 用户操作 {
+  shape: person
+  width: 130
+}
+
+load to validated data: ||rs
+  let templates: Vec<Template>;
+  let (bill_temps, shipment_temps): (Vec<_>, Vec<_>) = templates.iter().partition(|t| matches!(...)) // 根据解析配置分成两组
+  let bills = bill_temps.map(|t| {
+    let headers: HashSet<String> = t.解析配置.get_headers();
+    let data: DataFrame = match t.数据来源配置 {
+      Xls(数据来源配置) => ...
+      Xlsx(数据来源配置) => ...
+      Csv(数据来源配置) => ...
+    }
+    let parser = match t.解析配置 {
+      WB(解析配置) => ...
+      TS(解析配置) => ...
+      ...
+      _ => return Err(...) // 这是属于Shipment的解析配置
+    }
+    data.iter().map(|d| {
+      parser.parse(d) // ValidateBill
+    })
+  });
+  let shipments = shipment_temps.map(|t| {
+    ... // 同理
+  });
+||
+
+gui: {
+  # 用户以预定义模板的形式输入
+  # 每个模板可以指定多个表格数据来源
+  Template: {
+    shape: class
+    parse_config: ParseConfig
+    readers: Vec<TableReadConfig>
+  }
+
+  TableReadConfig: ||rs
+    enum TableReadConfig {
+      Xls(...)
+      Xlsx(...)
+      ...
+      Csv(...)
+    }
+  ||
+
+  ParseConfig: ||rs
+    enum ParseConfig {
+      WB(WBParseConfig)
+      GRT(GRTParseConfig)
+      ...
+      Headway(HeadwayParseConfig)
+    }
+  ||
+
+  TableReadConfig -> Template
+  ParseConfig -> Template
+}
+
+# 提供数据来源配置接口 enum table read config
+# 提供解析配置接口 enum parse config
+middle: {
+  table reader: {
+    ExcelReader: {
+      shape: class
+    }
+    CsvReader: {
+      shape: class
+    }
+
+    _._.gui.TableReadConfig <- ExcelReader
+    _._.gui.TableReadConfig <- CsvReader
+  }
+
+  parser: {
+    Parse: ||rs
+      trait Parse {
+        type Target: Validate
+        type Config
+
+        fn parse(&self, data: DataFrame, config: Self::Config) -> Self::Target;
+      }
+    ||
+
+    WBParser: {
+      shape: class
+    }
+
+    WBParseConfig: {
+      shape: class
+    }
+
+    HeadwayParser: {
+      shape: class
+    }
+
+    HeadwayParseConfig: {
+      shape: class
+    }
+
+    _._.gui.ParseConfig <- WBParseConfig <- WBParser <- Parse
+    _._.gui.ParseConfig <- HeadwayParseConfig <- HeadwayParser <- Parse
+  }
+
+  validate data: {
+    Validate: ||rs
+      triat Validate {
+        type Error;
+        fn validate(&self) -> Result<DataFrame, Self::Error>;
+      }
+    ||
+    ValidateBill: {
+      shape: class
+    }
+    ValidateShipment: {
+      shape: class
+    }
+
+    ValidateBill <- Validate: 实现 {
+      target-arrowhead: diamond
+    }
+    ValidateShipment <- Validate: 实现 {
+      target-arrowhead: diamond
+    }
+  }
+}
+
+core: {
+  Processor: {
+    shape: class
+  }
+
+  Reconsiler: {
+    shape: class
+  }
+}
+
+user -> gui.Template: 输入并转换 {
+  source-arrowhead: *
+  target-arrowhead: *
+}
+
+gui.Template -> load to validated data: {
+  source-arrowhead: *
+  target-arrowhead: 1
+}
+
+load to validated data -> middle.validate data.ValidateBill: {
+  source-arrowhead: 1
+  target-arrowhead: *
+}
+load to validated data -> middle.validate data.ValidateShipment: {
+  source-arrowhead: 1
+  target-arrowhead: *
+}
+
+middle.validate data.ValidateBill -> core.Processor: {
+  target-arrowhead: 1
+}
+middle.validate data.ValidateShipment -> core.Processor: {
+  target-arrowhead: 1
+}
+
+core.Processor -> core.freight dataframe: 账单 {
+  target-arrowhead: 2
+}
+core.Processor -> core.customs dataframe: 运单 {
+  target-arrowhead: 2
+}
+
+core.freight dataframe -> core.Reconsiler: difference analyse
+core.customs dataframe -> core.Reconsiler: difference analyse
+
+core.Reconsiler -> reconsile result

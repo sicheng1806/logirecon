@@ -1,5 +1,4 @@
 /target
-data/test/
-core/data/test/
 .venv/
 tmp/
+*_output.csv

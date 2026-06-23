@@ -1,0 +1,12 @@
+[package]
+name = "logirecon"
+description = "物流对账分析和报表生成"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+polars.workspace = true
+chrono.workspace = true
+calamine.workspace = true
+thiserror.workspace = true
