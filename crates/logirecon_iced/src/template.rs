@@ -155,7 +155,7 @@ impl State {
             let palette = theme.extended_palette();
             container::Style {
                 background: Some(palette.background.weakest.color.into()),
-                text_color: Some(palette.background.weakest.color),
+                text_color: Some(palette.background.weakest.text),
                 border: Border {
                     width: 1.0,
                     radius: 20.0.into(),

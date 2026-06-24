@@ -5,17 +5,19 @@ use iced::{
 };
 
 pub fn trash_button<'a, Message>() -> button::Button<'a, Message, Theme, Renderer> {
-    svg_button("/public/trash.svg")
+    let handle = svg::Handle::from_memory(include_bytes!("../public/trash.svg"));
+    svg_button(handle)
 }
 
 pub fn cancel_button<'a, Message>() -> button::Button<'a, Message, Theme, Renderer> {
-    svg_button("/public/cancel.svg")
+    let handle = svg::Handle::from_memory(include_bytes!("../public/cancel.svg"));
+    svg_button(handle)
 }
 
 pub fn svg_button<'a, Message>(
-    path: &str,
+    handle: impl Into<svg::Handle>,
 ) -> button::Button<'a, Message, iced::Theme, iced::Renderer> {
-    let svg = svg(format!("{}{}", env!("CARGO_MANIFEST_DIR"), path))
+    let svg = svg(handle)
         .width(PADDING)
         .height(PADDING)
         .style(|theme: &Theme, _state| {
