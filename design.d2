@@ -34,28 +34,27 @@ gui: {
   Template: {
     shape: class
     parse_config: ParseConfig
-    readers: Vec<TableReadConfig>
+    readers: Vec<ReadConfig>
   }
 
-  TableReadConfig: ||rs
-    enum TableReadConfig {
-      Xls(...)
+  ReadConfig: ||rs
+    enum ReadConfig {
+      Xls(Box<dyn ReadSeek>, String)
       Xlsx(...)
-      ...
-      Csv(...)
     }
   ||
 
   ParseConfig: ||rs
     enum ParseConfig {
       WB(WBParseConfig)
-      GRT(GRTParseConfig)
-      ...
+      GRT(WBParseConfig)
+      TS(TSParseConfig)
+      DDD(DDParseConfig)
       Headway(HeadwayParseConfig)
     }
   ||
 
-  TableReadConfig -> Template
+  ReadConfig -> Template
   ParseConfig -> Template
 }
 
@@ -65,13 +64,20 @@ middle: {
   table reader: {
     ExcelReader: {
       shape: class
+      data: Range<Data>
+      headers: HashSet<Data>
+      primary: String
+
+      load_worksheet(mut self, path, name): &mut Self
+      load_worksheet_from_rs(mut self, rs, name): &mut Self
     }
+
     CsvReader: {
       shape: class
     }
 
-    _._.gui.TableReadConfig <- ExcelReader
-    _._.gui.TableReadConfig <- CsvReader
+    _._.gui.ReadConfig <- ExcelReader
+    _._.gui.ReadConfig <- CsvReader
   }
 
   parser: {

@@ -13,63 +13,25 @@ pub struct DDDParseConfig {
     pub headers: DDDHeaders,
 }
 
-#[derive(Clone)]
-/// 嘀嗒嘀表头
-pub struct DDDHeaders {
-    /// 日期
-    pub date: String,
-    /// 运单号
-    pub waybill_no: String,
-    /// 订单号
-    pub shipment_no: String,
-    /// 仓库编码
-    pub warehouse_code: String,
-    /// 件数
-    pub n_pieces: String,
-    /// 收费重
-    pub chargeable_weight: String,
-    /// 计算公式
-    pub formula: String,
-}
-
-impl Default for DDDHeaders {
-    fn default() -> Self {
-        Self {
-            date: "签入日期".to_string(),
-            waybill_no: "运单号".to_string(),
-            shipment_no: "FBA单号".to_string(),
-            warehouse_code: "目的仓".to_string(),
-            n_pieces: "件数".to_string(),
-            chargeable_weight: "收费重".to_string(),
-            formula: "计算公式".to_string(),
-        }
-    }
-}
-
-impl AsHeaders for DDDHeaders {
-    fn as_headers(&self) -> HashMap<String, String> {
-        let DDDHeaders {
-            date,
-            waybill_no,
-            shipment_no,
-            warehouse_code,
-            n_pieces,
-            chargeable_weight,
-            formula,
-        } = self;
-        HashMap::from_iter(
-            [
-                ("签入日期", date),
-                ("运单号", waybill_no),
-                ("FBA单号", shipment_no),
-                ("目的仓", warehouse_code),
-                ("件数", n_pieces),
-                ("收费重", chargeable_weight),
-                ("计算公式", formula),
-            ]
-            .map(|(k, v)| (k.to_string(), v.to_owned())),
-        )
-    }
+crate::define_headers! {
+    #[derive(Debug, Clone)]
+    /// 嘀嗒嘀表头
+    pub struct DDDHeaders [
+        /// 日期
+        date: "签入日期",
+        /// 运单号
+        waybill_no: "运单号",
+        /// 订单号
+        shipment_no: "FBA单号",
+        /// 仓库编码
+        warehouse_code: "目的仓",
+        /// 件数
+        n_pieces: "件数",
+        /// 收费重
+        chargeable_weight: "收费重",
+        /// 计算公式
+        formula: "计算公式",
+    ]
 }
 
 impl Default for DDDParseConfig {

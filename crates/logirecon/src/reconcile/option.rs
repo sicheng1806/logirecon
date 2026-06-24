@@ -30,7 +30,7 @@ use crate::DataFrame;
 ///     .left(df1, "A")
 ///     .right(df2, "B")
 ///     .try_into_reconciler()?
-///     .build_result()?;
+///     .reconcile()?;
 ///
 ///     let width_res = reconciler.get_width_result()?;
 ///     println!("width result : {}", width_res);

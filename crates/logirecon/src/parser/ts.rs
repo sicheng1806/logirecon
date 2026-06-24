@@ -24,68 +24,27 @@ impl Default for TSParseConfig {
     }
 }
 
-#[derive(Clone)]
-/// 天盛表头
-pub struct TSHeaders {
-    /// 日期
-    pub date: String,
-    /// 运单号
-    pub waybill_no: String,
-    /// 客户运单号
-    pub shipment_no: String,
-    /// 地址编码
-    pub warehouse_code: String,
-    /// 件数
-    pub n_pieces: String,
-    /// 收费重
-    pub chargeable_weight: String,
-    /// 单价
-    pub unit_price: String,
-    /// 单位
-    pub unit: String,
-}
-
-impl Default for TSHeaders {
-    fn default() -> Self {
-        Self {
-            date: "日期".to_string(),
-            waybill_no: "运单号".to_string(),
-            shipment_no: "客户运单号".to_string(),
-            warehouse_code: "地址编码".to_string(),
-            n_pieces: "件数".to_string(),
-            chargeable_weight: "收费重".to_string(),
-            unit_price: "单价".to_string(),
-            unit: "单位".to_string(),
-        }
-    }
-}
-
-impl AsHeaders for TSHeaders {
-    fn as_headers(&self) -> HashMap<String, String> {
-        let TSHeaders {
-            date,
-            waybill_no,
-            shipment_no,
-            warehouse_code,
-            n_pieces,
-            chargeable_weight,
-            unit_price,
-            unit,
-        } = self;
-        HashMap::from_iter(
-            [
-                ("日期", date),
-                ("运单号", waybill_no),
-                ("客户运单号", shipment_no),
-                ("地址编码", warehouse_code),
-                ("件数", n_pieces),
-                ("收费重", chargeable_weight),
-                ("单价", unit_price),
-                ("单位", unit),
-            ]
-            .map(|(k, v)| (k.to_string(), v.to_owned())),
-        )
-    }
+crate::define_headers! {
+    #[derive(Clone)]
+    /// 天盛表头
+    pub struct TSHeaders [
+        /// 日期
+        date: "日期",
+        /// 运单号
+        waybill_no: "运单号",
+        /// 客户运单号
+        shipment_no: "客户运单号",
+        /// 地址编码
+        warehouse_code: "地址编码",
+        /// 件数
+        n_pieces: "件数",
+        /// 收费重
+        chargeable_weight: "收费重",
+        /// 单价
+        unit_price: "单价",
+        /// 单位
+        unit: "单位",
+    ]
 }
 
 impl Parse for TSParser {

@@ -1,15 +1,19 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/logirecon"
+    "crates/logirecon",
+    "crates/logirecon_iced",
+    "crates/logirecon_dioxus"
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["sicheng<sicheng1806@outlook.com>"]
 
 [workspace.dependencies]
+logirecon = { version = "0.2.0", path = "./crates/logirecon" }
+
 calamine = { version = "0.35.0", features = ["chrono"] }
 chrono = { version = "0.4.41", features = ["std"] }
 polars = { version = "0.53.0", features = [

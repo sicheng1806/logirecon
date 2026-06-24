@@ -26,19 +26,15 @@
 //! ```
 
 mod ddd;
+mod headers;
 mod headway;
 mod parse;
 mod ts;
 mod wb;
 
-use std::collections::HashMap;
-
 pub use ddd::{DDDHeaders, DDDParseConfig, DDDParser};
+pub use headers::AsHeaders;
 pub use headway::{HeadwayHeaders, HeadwayParseConfig, HeadwayParser};
 pub use parse::Parse;
 pub use ts::{TSHeaders, TSParseConfig, TSParser};
 pub use wb::{WBHeaders, WBParseConfig, WBParser};
-
-pub trait AsHeaders {
-    fn as_headers(&self) -> HashMap<String, String>;
-}

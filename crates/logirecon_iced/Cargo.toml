@@ -1,0 +1,20 @@
+[package]
+name = "logirecon_iced"
+description = "A GUI for logirecon builded by Iced"
+authors.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+logirecon.workspace = true
+polars.workspace = true
+calamine.workspace = true
+uuid.workspace = true
+tokio.workspace = true
+
+iced = { version = "0.14.0", features = ["tokio", "svg"] }
+serde = { version = "1.0.228" }
+rfd = { version = "0.17.2" }
+polars_excel_writer = { version = "0.25.0" }
+directories = { version = "6.0.0" }
+serde_json = { version = "1.0.150" }

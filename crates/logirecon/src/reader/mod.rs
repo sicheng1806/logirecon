@@ -14,8 +14,8 @@ pub enum ExcelError {
     Load(#[from] calamine::Error),
     #[error("还未载入数据")]
     NotLoad,
-    #[error("查找数据时发生错误")]
+    #[error("查找数据时发生错误, {0}")]
     Find(String),
-    #[error("转换数据时发生错误")]
+    #[error("转换数据时发生错误, {0}")]
     Transform(#[from] polars::error::PolarsError),
 }

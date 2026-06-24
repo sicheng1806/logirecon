@@ -1,0 +1,8 @@
+[package]
+name = "logirecon_dioxus"
+description = "A GUI for logirecon builded by Dioxus"
+authors.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[dependencies]

@@ -1,5 +1,61 @@
-//! 为GUI界面提供统一的接口层
-
+//! 为GUI界面提供统一的接口层和运行函数
+//! # Example
+//! ```ignore
+//! fn main() {
+//!     let wb = Template {
+//!         parse_config: ParseConfig::WB(WBParseConfig::default()),
+//!         sources: vec![ReadConfig::ExcelFilePath {
+//!             path: PATH_BILLS.clone(),
+//!             name: SHEET_WB.into(),
+//!         }],
+//!     };
+//!     let grt = Template {
+//!         parse_config: ParseConfig::GRT(WBParseConfig::grt()),
+//!         sources: vec![ReadConfig::ExcelFilePath {
+//!             path: PATH_BILLS.clone(),
+//!             name: SHEET_GRT.into(),
+//!         }],
+//!    };
+//!     let tsbg = Template {
+//!         parse_config: ParseConfig::TS(TSParseConfig::default()),
+//!         sources: vec![ReadConfig::ExcelFilePath {
+//!             path: PATH_BILLS.clone(),
+//!             name: SHEET_TSBG.into(),
+//!         }],
+//!     };
+//!     let tsyf = Template {
+//!         parse_config: ParseConfig::TS(TSParseConfig::default()),
+//!         sources: vec![ReadConfig::ExcelFilePath {
+//!             path: PATH_BILLS.clone(),
+//!             name: SHEET_TSYF.into(),
+//!         }],
+//!     };
+//!     let ddd = Template {
+//!         parse_config: ParseConfig::DDD(DDDParseConfig::default()),
+//!         sources: vec![ReadConfig::ExcelFilePath {
+//!             path: PATH_BILLS.clone(),
+//!             name: SHEET_DDD.into(),
+//!         }],
+//!     };
+//!     let headway = {
+//!         let mut config = HeadwayParseConfig::default();
+//!         config.year = 2026;
+//!         config.headers.customs_fee = "报关或其他费".into();
+//!         Template {
+//!             parse_config: ParseConfig::Headway(config),
+//!             sources: vec![ReadConfig::ExcelFilePath {
+//!                 path: PATH_HEADWAY.clone(),
+//!                 name: SHEET_HEADWAY_2026.into(),
+//!             }],
+//!         }
+//!     };
+//!     let templates = vec![wb, grt, ddd, tsbg, tsyf, headway];
+//!     let (freight_reconciler, customs_reconciler) = get_reconciler(templates).unwrap();
+//!     let freight = freight_reconciler.get_long_result().unwrap();
+//!     let customs = customs_reconciler.get_long_result().unwrap();
+//!     let stasis_result = stasis_freight_and_customs(freight, customs).unwrap();
+//!     println!("对账分析结果:\n{}", stasis_result);
+//! }
 use std::{
     io::{Read, Seek},
     path::PathBuf,
@@ -28,6 +84,9 @@ pub enum RunError {
     Reconsile(#[from] ReconcileError),
     #[error("数据处理失败")]
     Polars(#[from] polars::error::PolarsError),
+    /// 用于GUI报错
+    #[error("{0}")]
+    Any(String),
 }
 
 /// 将模板序列转换为对账器
@@ -103,7 +162,7 @@ pub fn get_reconciler(
 /// - freight: 运费对账的长格式结果
 /// - customs: 报关费对账的长格式结果
 ///
-/// 更多参见: [Reconsiler]
+/// 更多参见: [Reconciler]
 pub fn stasis_freight_and_customs(
     freight: DataFrame,
     customs: DataFrame,
@@ -194,6 +253,15 @@ impl AsHeaders for ParseConfig {
             Self::TS(config) => config.headers.as_headers(),
             Self::DDD(config) => config.headers.as_headers(),
             Self::Headway(config) => config.headers.as_headers(),
+        }
+    }
+    fn update_headers(&mut self, headers: impl IntoIterator<Item = (String, String)>) {
+        match self {
+            Self::WB(config) => config.headers.update_headers(headers),
+            Self::GRT(config) => config.headers.update_headers(headers),
+            Self::TS(config) => config.headers.update_headers(headers),
+            Self::DDD(config) => config.headers.update_headers(headers),
+            Self::Headway(config) => config.headers.update_headers(headers),
         }
     }
 }

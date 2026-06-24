@@ -78,7 +78,10 @@ pub fn find_data_scope(
         }
     }
     if headers_row_idx.is_none() {
-        return Err(Error::Find("未找到所有的表头".to_string()));
+        return Err(Error::Find(format!(
+            "未找到所有表头\n表头: {}\n主键: {primary_key}",
+            headers.into_iter().collect::<Vec<_>>().join(",")
+        )));
     }
     // 根据主键列确定表格区域
     let _col_idx = headers_mapping.get(&primary_key).unwrap();

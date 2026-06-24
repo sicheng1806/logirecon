@@ -15,63 +15,25 @@ pub struct WBParseConfig {
     pub headers: WBHeaders,
 }
 
-#[derive(Clone)]
-/// 万邦表头
-pub struct WBHeaders {
-    /// 日期
-    pub date: String,
-    /// 运单号
-    pub waybill_no: String,
-    /// 订单号
-    pub shipment_no: String,
-    /// 仓库编码
-    pub warehouse_code: String,
-    /// 件数
-    pub n_pieces: String,
-    /// 收费重
-    pub chargeable_weight: String,
-    /// 单价
-    pub unit_price: String,
-}
-
-impl Default for WBHeaders {
-    fn default() -> Self {
-        Self {
-            date: "日期".to_string(),
-            waybill_no: "运单号".to_string(),
-            shipment_no: "订单号".to_string(),
-            warehouse_code: "仓库编码".to_string(),
-            n_pieces: "件数".to_string(),
-            chargeable_weight: "收费重".to_string(),
-            unit_price: "单价".to_string(),
-        }
-    }
-}
-
-impl AsHeaders for WBHeaders {
-    fn as_headers(&self) -> HashMap<String, String> {
-        let WBHeaders {
-            date,
-            waybill_no,
-            shipment_no,
-            warehouse_code,
-            n_pieces,
-            chargeable_weight,
-            unit_price,
-        } = self;
-        HashMap::from_iter(
-            [
-                ("日期", date),
-                ("运单号", waybill_no),
-                ("订单号", shipment_no),
-                ("仓库编码", warehouse_code),
-                ("件数", n_pieces),
-                ("收费重", chargeable_weight),
-                ("单价", unit_price),
-            ]
-            .map(|(k, v)| (k.to_string(), v.to_owned())),
-        )
-    }
+crate::define_headers! {
+    #[derive(Clone)]
+    /// 万邦表头
+    pub struct WBHeaders [
+        /// 日期
+        date: "日期",
+        /// 运单号
+        waybill_no: "运单号",
+        /// 订单号
+        shipment_no: "订单号",
+        /// 仓库编码
+        warehouse_code: "仓库编码",
+        /// 件数
+        n_pieces: "件数",
+        /// 收费重
+        chargeable_weight: "收费重",
+        /// 单价
+        unit_price: "单价",
+    ]
 }
 
 impl Default for WBParseConfig {
@@ -88,12 +50,13 @@ impl Default for WBParseConfig {
 impl WBParseConfig {
     /// 国润通模板的默认配置
     pub fn grt() -> Self {
-        let mut headers = WBHeaders::default();
-        headers.shipment_no = "扩展单号".into();
-        headers.warehouse_code = "地址编码".into();
         Self {
             forwarder: "国润通".into(),
-            headers,
+            headers: WBHeaders {
+                shipment_no: "扩展单号".into(),
+                warehouse_code: "地址编码".into(),
+                ..Default::default()
+            },
             ..Default::default()
         }
     }

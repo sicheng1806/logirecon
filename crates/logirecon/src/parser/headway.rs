@@ -13,68 +13,28 @@ pub struct HeadwayParseConfig {
     pub headers: HeadwayHeaders,
 }
 
-/// 头程表头
-#[derive(Clone)]
-pub struct HeadwayHeaders {
-    /// 提货时间
-    pub date: String,
-    /// 货件单号
-    pub shipment_no: String,
-    /// 物流中心编码
-    pub warehouse_code: String,
-    /// 箱数
-    pub n_pieces: String,
-    /// 货件计费重
-    pub chargeable_weight: String,
-    /// 物流单价
-    pub unit_price: String,
-    /// 报关费
-    pub customs_fee: String,
-    /// 报关周次
-    pub customs_no: String,
-}
+crate::define_headers! {
+    /// 头程表头
+    #[derive(Clone)]
+    pub struct HeadwayHeaders [
+        /// 提货时间
+        date: "提货时间",
+        /// 货件单号
+        shipment_no: "货件单号",
+        /// 物流中心编码
+        warehouse_code: "物流中心编码",
+        /// 箱数
+        n_pieces: "箱数",
+        /// 货件计费重
+        chargeable_weight: "货件计费重",
+        /// 物流单价
+        unit_price: "物流单价",
+        /// 报关费
+        customs_fee: "报关费",
+        /// 报关周次
+        customs_no: "报关周次",
+    ]
 
-impl Default for HeadwayHeaders {
-    fn default() -> Self {
-        Self {
-            date: "提货时间".to_string(),
-            shipment_no: "货件单号".to_string(),
-            warehouse_code: "物流中心编码".to_string(),
-            n_pieces: "箱数".to_string(),
-            chargeable_weight: "货件计费重".to_string(),
-            unit_price: "物流单价".to_string(),
-            customs_fee: "报关费".to_string(),
-            customs_no: "报关周次".to_string(),
-        }
-    }
-}
-
-impl AsHeaders for HeadwayHeaders {
-    fn as_headers(&self) -> HashMap<String, String> {
-        let HeadwayHeaders {
-            date,
-            shipment_no,
-            warehouse_code,
-            n_pieces,
-            chargeable_weight,
-            unit_price,
-            customs_fee,
-            customs_no,
-        } = self;
-        HashMap::from_iter(
-            [
-                ("提货时间", date),
-                ("货件单号", shipment_no),
-                ("物流中心编码", warehouse_code),
-                ("箱数", n_pieces),
-                ("货件计费重", chargeable_weight),
-                ("物流单价", unit_price),
-                ("报关费", customs_fee),
-                ("报关周次", customs_no),
-            ]
-            .map(|(k, v)| (k.to_string(), v.to_owned())),
-        )
-    }
 }
 
 impl Default for HeadwayParseConfig {
