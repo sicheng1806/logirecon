@@ -1,7 +1,7 @@
 use iced::{Element, Task};
 use logirecon::DataFrame;
 use logirecon::parser::{
-    AsHeaders, DDDParseConfig, HeadwayParseConfig, TSParseConfig, WBParseConfig,
+    AsHeaders, DddParseConfig, HeadwayParseConfig, JydParseConfig, TsParseConfig, WBParseConfig,
 };
 
 use crate::components::{dataframe_table, modal};
@@ -172,30 +172,35 @@ impl From<template::State> for Template {
             ..
         } = value;
         let parse_config = match temp_type {
-            TemplateType::WB => {
+            TemplateType::Wb => {
                 let mut config = WBParseConfig::default();
                 config.headers.update_headers(headers);
-                ParseConfig::WB(config)
+                ParseConfig::Wb(config)
             }
             TemplateType::Grt => {
                 let mut config = WBParseConfig::grt();
                 config.headers.update_headers(headers);
-                ParseConfig::WB(config)
+                ParseConfig::Wb(config)
             }
-            TemplateType::JM => {
+            TemplateType::Jm => {
                 let mut config = WBParseConfig::jm();
                 config.headers.update_headers(headers);
-                ParseConfig::WB(config)
+                ParseConfig::Wb(config)
             }
-            TemplateType::TS => {
-                let mut config = TSParseConfig::default();
+            TemplateType::Ts => {
+                let mut config = TsParseConfig::default();
                 config.headers.update_headers(headers);
-                ParseConfig::TS(config)
+                ParseConfig::Ts(config)
             }
             TemplateType::Ddd => {
-                let mut config = DDDParseConfig::default();
+                let mut config = DddParseConfig::default();
                 config.headers.update_headers(headers);
-                ParseConfig::DDD(config)
+                ParseConfig::Ddd(config)
+            }
+            TemplateType::Jyd => {
+                let mut config = JydParseConfig::default();
+                config.headers.update_headers(headers);
+                ParseConfig::Jyd(config)
             }
             TemplateType::Headway => {
                 let mut config = HeadwayParseConfig::default();
@@ -210,10 +215,15 @@ impl From<template::State> for Template {
                      chosen,
                      selected,
                      path,
+                     primary,
                      ..
                  }| {
                     if chosen && let Some(name) = selected {
-                        Some(ReadConfig::ExcelFilePath { path, name })
+                        Some(ReadConfig::ExcelFilePath {
+                            path,
+                            name,
+                            primary,
+                        })
                     } else {
                         None
                     }

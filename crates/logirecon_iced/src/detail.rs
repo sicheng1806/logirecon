@@ -24,11 +24,12 @@ impl State {
         Self {
             title: "物流账单".into(),
             template_selection: vec![
-                TemplateType::WB,
-                TemplateType::TS,
+                TemplateType::Wb,
+                TemplateType::Ts,
                 TemplateType::Ddd,
                 TemplateType::Grt,
-                TemplateType::JM,
+                TemplateType::Jm,
+                TemplateType::Jyd,
             ]
             .into(),
             temp_type: None,

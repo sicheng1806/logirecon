@@ -4,19 +4,19 @@ use super::{AsHeaders, Parse};
 use crate::validate::BillData;
 
 /// 嘀嗒嘀解析器
-pub struct DDDParser;
+pub struct DddParser;
 
 #[derive(Clone)]
 /// 嘀嗒嘀解析器配置
-pub struct DDDParseConfig {
+pub struct DddParseConfig {
     pub datefmt: String,
-    pub headers: DDDHeaders,
+    pub headers: DddHeaders,
 }
 
 crate::define_headers! {
     #[derive(Debug, Clone)]
     /// 嘀嗒嘀表头
-    pub struct DDDHeaders [
+    pub struct DddHeaders [
         /// 日期
         date: "签入日期",
         /// 运单号
@@ -34,17 +34,17 @@ crate::define_headers! {
     ]
 }
 
-impl Default for DDDParseConfig {
+impl Default for DddParseConfig {
     fn default() -> Self {
         Self {
             datefmt: "%Y-%m-%d".into(),
-            headers: DDDHeaders::default(),
+            headers: DddHeaders::default(),
         }
     }
 }
 
-impl Parse for DDDParser {
-    type Config = DDDParseConfig;
+impl Parse for DddParser {
+    type Config = DddParseConfig;
     type Output = BillData;
     type Error = polars::error::PolarsError;
 
@@ -53,7 +53,7 @@ impl Parse for DDDParser {
         config: Self::Config,
     ) -> Result<Self::Output, Self::Error> {
         use polars::prelude::*;
-        let DDDParseConfig { datefmt, headers } = config;
+        let DddParseConfig { datefmt, headers } = config;
         let forwarder = "嘀嗒嘀";
         let name_mapping: HashMap<String, String> = headers.as_headers();
 

@@ -62,14 +62,14 @@ use std::{
 };
 
 use crate::{
-    parser::AsHeaders,
+    parser::{AsHeaders, JydParseConfig},
     process::ProcessError,
     reader::{ExcelError, ExcelReader},
     reconcile::{ReconcileError, Reconciler},
 };
 
 use super::DataFrame;
-use super::parser::{DDDParseConfig, HeadwayParseConfig, TSParseConfig, WBParseConfig};
+use super::parser::{DddParseConfig, HeadwayParseConfig, TsParseConfig, WBParseConfig};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -110,28 +110,39 @@ pub fn get_reconciler(
         let headers = parse_config.as_headers();
         for read_config in sources {
             let data = match read_config {
-                ReadConfig::ExcelFilePath { path, name } => ExcelReader::new(headers.values())
-                    .primary("序号")
+                ReadConfig::ExcelFilePath {
+                    path,
+                    name,
+                    primary,
+                } => ExcelReader::new(headers.values())
+                    .primary(&primary)
                     .load_worksheet(path, &name)?
                     .read()?,
                 ReadConfig::ExcelReadSeek {
                     rs,
                     name,
+                    primary,
                     extension,
                 } => ExcelReader::new(headers.values())
-                    .primary("序号")
+                    .primary(&primary)
                     .load_worksheet_from_rs(rs, &name, &extension)?
                     .read()?,
             };
+            {
+                println!("读取信息: {} x {}", data.width(), data.height());
+            }
             match &parse_config {
-                ParseConfig::WB(config) => {
-                    bills.push(WBParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
+                ParseConfig::Wb(config) => {
+                    bills.push(WbParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
                 }
-                ParseConfig::TS(config) => {
-                    bills.push(TSParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
+                ParseConfig::Ts(config) => {
+                    bills.push(TsParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
                 }
-                ParseConfig::DDD(config) => {
-                    bills.push(DDDParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
+                ParseConfig::Ddd(config) => {
+                    bills.push(DddParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
+                }
+                ParseConfig::Jyd(config) => {
+                    bills.push(JydParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
                 }
                 ParseConfig::Headway(config) => shipments
                     .push(HeadwayParser::parse(data, config.to_owned()).map_err(RunError::Parse)?),
@@ -238,26 +249,29 @@ pub struct Template {
 
 /// 解析器配置
 pub enum ParseConfig {
-    WB(WBParseConfig),
-    TS(TSParseConfig),
-    DDD(DDDParseConfig),
+    Wb(WBParseConfig),
+    Ts(TsParseConfig),
+    Ddd(DddParseConfig),
+    Jyd(JydParseConfig),
     Headway(HeadwayParseConfig),
 }
 
 impl AsHeaders for ParseConfig {
     fn as_headers(&self) -> std::collections::HashMap<String, String> {
         match self {
-            Self::WB(config) => config.headers.as_headers(),
-            Self::TS(config) => config.headers.as_headers(),
-            Self::DDD(config) => config.headers.as_headers(),
+            Self::Wb(config) => config.headers.as_headers(),
+            Self::Ts(config) => config.headers.as_headers(),
+            Self::Ddd(config) => config.headers.as_headers(),
+            Self::Jyd(config) => config.headers.as_headers(),
             Self::Headway(config) => config.headers.as_headers(),
         }
     }
     fn update_headers(&mut self, headers: impl IntoIterator<Item = (String, String)>) {
         match self {
-            Self::WB(config) => config.headers.update_headers(headers),
-            Self::TS(config) => config.headers.update_headers(headers),
-            Self::DDD(config) => config.headers.update_headers(headers),
+            Self::Wb(config) => config.headers.update_headers(headers),
+            Self::Ts(config) => config.headers.update_headers(headers),
+            Self::Ddd(config) => config.headers.update_headers(headers),
+            Self::Jyd(config) => config.headers.update_headers(headers),
             Self::Headway(config) => config.headers.update_headers(headers),
         }
     }
@@ -268,10 +282,12 @@ pub enum ReadConfig {
     ExcelFilePath {
         path: PathBuf,
         name: String,
+        primary: String,
     },
     ExcelReadSeek {
         rs: Box<dyn ReadSeek>,
         name: String,
+        primary: String,
         extension: String,
     },
 }

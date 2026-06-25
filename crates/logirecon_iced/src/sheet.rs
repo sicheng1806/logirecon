@@ -2,6 +2,8 @@
 
 use std::path::PathBuf;
 
+use crate::constants::{PADDING, SPACING};
+
 use super::components::trash_button;
 use iced::{Element, widget::combo_box};
 use serde::{Deserialize, Serialize};
@@ -13,6 +15,7 @@ pub struct State {
     pub selected: Option<String>,
     pub chosen: bool,
     pub sheets: ComboState,
+    pub primary: String,
 }
 
 #[derive(Debug, Clone)]
@@ -20,6 +23,7 @@ pub enum Message {
     Delete,
     Chosen(bool),
     Selected(String),
+    PrimaryChanged(String),
 }
 
 impl State {
@@ -34,6 +38,7 @@ impl State {
             selected: None,
             chosen: false,
             sheets: sheets.into(),
+            primary: "序号".into(),
         })
     }
 
@@ -41,24 +46,36 @@ impl State {
         match message {
             Message::Delete => {}
             Message::Chosen(chosen) => self.chosen = chosen,
+            Message::PrimaryChanged(primary) => self.primary = primary,
             Message::Selected(name) => self.selected = Some(name),
         }
     }
 
     pub fn view(&self) -> Element<'_, Message> {
         use iced::{Alignment::*, widget::*};
-        let check_btn = checkbox(self.chosen)
-            .label(self.path.file_name().unwrap().to_str().unwrap())
-            .on_toggle(Message::Chosen);
+        let check_btn = checkbox(self.chosen).on_toggle(Message::Chosen);
+        let tip = container(text!("{}", self.path.to_str().unwrap()))
+            .padding(PADDING * 0.5)
+            .style(container::rounded_box);
         let select = combo_box(
             &self.sheets.0,
             "选择工作簿",
             self.selected.as_ref(),
             Message::Selected,
         );
-        let delete_btn = trash_button().on_press(Message::Delete);
-        row![check_btn, select, delete_btn]
-            .spacing(10)
+        let primary_input = row![
+            text!("主列").style(text::secondary),
+            text_input("输入用于确定区域的主列", &self.primary).on_input(Message::PrimaryChanged),
+        ]
+        .align_y(Center)
+        .spacing(SPACING * 0.5);
+        let delete_btn = tooltip(
+            trash_button().on_press(Message::Delete),
+            tip,
+            tooltip::Position::Top,
+        );
+        row![check_btn, primary_input, select, delete_btn]
+            .spacing(SPACING)
             .align_y(Center)
             .into()
     }

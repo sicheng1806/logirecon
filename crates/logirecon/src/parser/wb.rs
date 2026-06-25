@@ -4,7 +4,7 @@ use super::{AsHeaders, Parse};
 use crate::validate::BillData;
 
 /// 万邦解析器
-pub struct WBParser;
+pub struct WbParser;
 
 #[derive(Clone)]
 /// 万邦解析器配置
@@ -12,13 +12,13 @@ pub struct WBParseConfig {
     pub datefmt: String,
     pub units: (String, String),
     pub forwarder: String,
-    pub headers: WBHeaders,
+    pub headers: WbHeaders,
 }
 
 crate::define_headers! {
     #[derive(Clone)]
     /// 万邦表头
-    pub struct WBHeaders [
+    pub struct WbHeaders [
         /// 日期
         date: "日期",
         /// 运单号
@@ -42,7 +42,7 @@ impl Default for WBParseConfig {
             datefmt: "%Y/%m/%d".into(),
             units: ("KG".to_string(), "票".to_string()),
             forwarder: "万邦".to_string(),
-            headers: WBHeaders::default(),
+            headers: WbHeaders::default(),
         }
     }
 }
@@ -52,7 +52,7 @@ impl WBParseConfig {
     pub fn grt() -> Self {
         Self {
             forwarder: "国润通".into(),
-            headers: WBHeaders {
+            headers: WbHeaders {
                 shipment_no: "扩展单号".into(),
                 warehouse_code: "地址编码".into(),
                 ..Default::default()
@@ -64,7 +64,7 @@ impl WBParseConfig {
     pub fn jm() -> Self {
         Self {
             forwarder: "积米".to_string(),
-            headers: WBHeaders {
+            headers: WbHeaders {
                 shipment_no: "客户运单号".into(),
                 warehouse_code: "仓库代码".into(),
                 chargeable_weight: "收费重(KG)".into(),
@@ -75,7 +75,7 @@ impl WBParseConfig {
     }
 }
 
-impl Parse for WBParser {
+impl Parse for WbParser {
     type Config = WBParseConfig;
     type Output = BillData;
     type Error = polars::error::PolarsError;
@@ -180,7 +180,7 @@ mod tests {
         .unwrap();
         let mut config = WBParseConfig::default();
         config.headers.date = "发货日期".to_string();
-        let bill = WBParser::parse(data, config).unwrap();
+        let bill = WbParser::parse(data, config).unwrap();
         println!("{}", &bill.0);
         let data = bill.into_validated().unwrap();
         println!("{}", data);

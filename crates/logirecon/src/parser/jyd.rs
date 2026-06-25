@@ -3,52 +3,53 @@ use std::collections::HashMap;
 use super::{AsHeaders, Parse};
 use crate::validate::BillData;
 
-/// 天盛解析器
-pub struct TsParser;
+/// 京奕达解析器
+pub struct JydParser;
 
 #[derive(Clone)]
-/// 天盛解析器配置
-pub struct TsParseConfig {
+/// 京奕达解析器配置
+pub struct JydParseConfig {
     pub datefmt: String,
-    pub units: (String, String),
-    pub headers: TsHeaders,
+    pub year: i32,
+    pub headers: JydHeaders,
 }
 
-impl Default for TsParseConfig {
+impl Default for JydParseConfig {
     fn default() -> Self {
+        use chrono::Datelike;
         Self {
-            datefmt: "%Y-%m-%d".into(),
-            units: (r#"(KG|立方|kg)"#.to_string(), r#"(票)"#.to_string()),
-            headers: TsHeaders::default(),
+            datefmt: "%-m月%-d".into(),
+            year: chrono::Local::now().year(),
+            headers: JydHeaders::default(),
         }
     }
 }
 
 crate::define_headers! {
     #[derive(Clone)]
-    /// 天盛表头
-    pub struct TsHeaders [
+    /// 京奕达表头
+    pub struct JydHeaders [
         /// 日期
-        date: "日期",
+        date: "签入日期",
         /// 运单号
         waybill_no: "运单号",
         /// 客户运单号
-        shipment_no: "客户运单号",
+        shipment_no: "FBA单号",
         /// 地址编码
-        warehouse_code: "地址编码",
+        warehouse_code: "目的仓",
         /// 件数
         n_pieces: "件数",
         /// 收费重
         chargeable_weight: "收费重",
         /// 单价
-        unit_price: "单价",
-        /// 单位
-        unit: "单位",
+        unit_price: "运费",
+        /// 其他费用
+        customs_fee: "其他费用"
     ]
 }
 
-impl Parse for TsParser {
-    type Config = TsParseConfig;
+impl Parse for JydParser {
+    type Config = JydParseConfig;
     type Output = BillData;
     type Error = polars::error::PolarsError;
 
@@ -57,28 +58,29 @@ impl Parse for TsParser {
         config: Self::Config,
     ) -> Result<Self::Output, Self::Error> {
         use polars::prelude::*;
-        let TsParseConfig {
+        let JydParseConfig {
             datefmt,
-            units,
+            year,
             headers,
         } = config;
-        let forwarder = "天盛";
+        let forwarder = "京奕达";
         let name_mapping: HashMap<String, String> = headers.as_headers();
+        let datefmt = format!("%Y-{datefmt}");
 
         // 日期
-        let date = col("日期")
+        let date = concat_str([lit(year.to_string()), col("签入日期")], "-", true)
             .str()
             .to_date(StrptimeOptions {
                 format: Some(datefmt.into()),
                 strict: false,
-                exact: true,
+                exact: false,
                 cache: true,
             })
             .alias("日期");
         // 运单号
         let waybill_no = col("运单号").str().strip_chars(lit(" ")).alias("运单号");
         // 货件单号
-        let order_no = col("客户运单号")
+        let order_no = col("FBA单号")
             .str()
             .strip_chars(lit(" "))
             .str()
@@ -87,25 +89,34 @@ impl Parse for TsParser {
             .replace_all(lit("，"), lit(","), true)
             .alias("货件单号");
         // 物流中心编码
-        let warehouse_code = col("地址编码")
+        let warehouse_code = col("目的仓")
             .str()
             .strip_chars(lit(" "))
             .alias("物流中心编码");
         // 货代名称
         let forwarder = lit(forwarder).alias("货代名称");
         // 单价
-        let unit_price = col("单价").alias("单价");
-        // 账单类型
-        let bill_type = when(col("单位").str().contains(lit(units.1.as_str()), false))
-            .then(lit("报关费"))
-            .otherwise(lit("运费"))
-            .alias("账单类型");
+        let unit_price = col("运费").alias("运费单价");
         // 件数
         let n_pieces = col("件数").alias("件数");
         // 计费重
         let weight = col("收费重").alias("计费重");
-
-        // println!("parse dataframe: \n{}", dataframe);
+        // 报关费
+        let customs_fee = col("其他费用").alias("报关费");
+        // 根据报关费和单价结合生成费用类型，报关费 -> 单价
+        // {
+        //     println!(
+        //         "parse dataframe: \n{}",
+        //         data.clone()
+        //             .lazy()
+        //             .select([concat_str(
+        //                 [lit(year.to_string()), col("签入日期")],
+        //                 "-",
+        //                 true
+        //             )])
+        //             .collect()?
+        //     );
+        // }
         let df = data
             .lazy()
             .rename(name_mapping.values(), name_mapping.keys(), true)
@@ -118,10 +129,20 @@ impl Parse for TsParser {
                 forwarder,
                 n_pieces,
                 weight,
-                bill_type,
                 unit_price,
-            ])
-            .collect()?;
+                customs_fee,
+            ]);
+        let df1 = df.clone().filter(col("运费单价").is_not_null()).select([
+            all().exclude_cols(["运费单价", "报关费"]).as_expr(),
+            col("运费单价").alias("单价"),
+            lit("运费").alias("账单类型"),
+        ]);
+        let df2 = df.filter(col("报关费").is_not_null()).select([
+            all().exclude_cols(["运费单价", "报关费"]).as_expr(),
+            col("报关费").alias("单价"),
+            lit("报关费").alias("账单类型"),
+        ]);
+        let df = concat([df1, df2], UnionArgs::default())?.collect()?;
         Ok(BillData(df))
     }
 }

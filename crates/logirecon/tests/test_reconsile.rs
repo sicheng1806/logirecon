@@ -2,10 +2,7 @@ mod common;
 use common::*;
 use logirecon::{
     DataFrame,
-    parser::{
-        AsHeaders, DDDParseConfig, DDDParser, HeadwayParseConfig, HeadwayParser, Parse,
-        TSParseConfig, TSParser, WBParseConfig, WBParser,
-    },
+    parser::*,
     process::Processor,
     reader::ExcelReader,
     reconcile::ReconcileOption,
@@ -87,7 +84,7 @@ fn test_all_process() -> Result<()> {
         .primary("序号")
         .load_worksheet(PATH_BILLS.clone(), SHEET_WB)?
         .read()?;
-    bills.push(WBParser::parse(data, config.clone())?);
+    bills.push(WbParser::parse(data, config.clone())?);
     config.headers.shipment_no = "扩展单号".into();
     config.headers.warehouse_code = "地址编码".into();
     config.forwarder = "国润通".into();
@@ -95,26 +92,33 @@ fn test_all_process() -> Result<()> {
         .primary("序号")
         .load_worksheet(PATH_BILLS.clone(), SHEET_GRT)?
         .read()?;
-    bills.push(WBParser::parse(data, config)?);
+    bills.push(WbParser::parse(data, config)?);
     // ts
-    let config = TSParseConfig::default();
+    let config = TsParseConfig::default();
     let data = ExcelReader::new(config.headers.as_headers().values())
         .primary("序号")
         .load_worksheet(PATH_BILLS.clone(), SHEET_TSBG)?
         .read()?;
-    bills.push(TSParser::parse(data, config.clone())?);
+    bills.push(TsParser::parse(data, config.clone())?);
     let data = ExcelReader::new(config.headers.as_headers().values())
         .primary("序号")
         .load_worksheet(PATH_BILLS.clone(), SHEET_TSYF)?
         .read()?;
-    bills.push(TSParser::parse(data, config)?);
+    bills.push(TsParser::parse(data, config)?);
     // ddd
-    let config = DDDParseConfig::default();
+    let config = DddParseConfig::default();
     let data = ExcelReader::new(config.headers.as_headers().values())
         .primary("序号")
         .load_worksheet(PATH_BILLS.clone(), SHEET_DDD)?
         .read()?;
-    bills.push(DDDParser::parse(data, config)?);
+    bills.push(DddParser::parse(data, config)?);
+    // jyd
+    let config = JydParseConfig::default();
+    let data = ExcelReader::new(config.headers.as_headers().values())
+        .primary("序号")
+        .load_worksheet(PATH_BILLS.clone(), SHEET_JYD)?
+        .read()?;
+    bills.push(JydParser::parse(data, config)?);
     // headway
     let mut config = HeadwayParseConfig::default();
     let data_2025 = ExcelReader::new(config.headers.as_headers().values())

@@ -78,10 +78,15 @@ impl Processor {
 
         let bill = concat(raw_bills, UnionArgs::default())?.collect()?;
         let shipment = concat(raw_shipments, UnionArgs::default())?.collect()?;
-
+        {
+            // println!("raw bill is : {}", bill);
+        }
         // parse
         let relation: DataFrame = build_relation(&bill, &shipment)?;
         let bill: DataFrame = patch_bill(bill, &relation)?;
+        {
+            // println!("patched bill is : {}", bill);
+        }
         let shipment: DataFrame = patch_shipment(shipment, &relation)?;
         Ok(Self { bill, shipment })
     }

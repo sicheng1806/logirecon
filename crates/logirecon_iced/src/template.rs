@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 use iced::{Element, Function, Task};
 use logirecon::parser::{
-    AsHeaders, DDDParseConfig, HeadwayParseConfig, TSParseConfig, WBParseConfig,
+    AsHeaders, DddParseConfig, HeadwayParseConfig, JydParseConfig, TsParseConfig, WBParseConfig,
 };
 use serde::{Deserialize, Serialize};
 
@@ -20,22 +20,24 @@ use super::sheet;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TemplateType {
-    WB,
+    Wb,
     Grt,
-    JM,
+    Jm,
     Ddd,
-    TS,
+    Ts,
+    Jyd,
     Headway,
 }
 
 impl TemplateType {
     pub fn name(&self) -> String {
         match self {
-            Self::WB => "万邦",
+            Self::Wb => "万邦",
             Self::Grt => "国润通",
-            Self::JM => "积米",
+            Self::Jm => "积米",
             Self::Ddd => "嘀嗒嘀",
-            Self::TS => "天盛",
+            Self::Ts => "天盛",
+            Self::Jyd => "京奕达",
             Self::Headway => "头程明细",
         }
         .into()
@@ -63,11 +65,12 @@ pub enum Message {
 impl State {
     pub fn new(temp_type: TemplateType) -> Self {
         let headers = match &temp_type {
-            TemplateType::WB => WBParseConfig::default().headers.as_headers(),
+            TemplateType::Wb => WBParseConfig::default().headers.as_headers(),
             TemplateType::Grt => WBParseConfig::grt().headers.as_headers(),
-            TemplateType::JM => WBParseConfig::jm().headers.as_headers(),
-            TemplateType::TS => TSParseConfig::default().headers.as_headers(),
-            TemplateType::Ddd => DDDParseConfig::default().headers.as_headers(),
+            TemplateType::Jm => WBParseConfig::jm().headers.as_headers(),
+            TemplateType::Ts => TsParseConfig::default().headers.as_headers(),
+            TemplateType::Ddd => DddParseConfig::default().headers.as_headers(),
+            TemplateType::Jyd => JydParseConfig::default().headers.as_headers(),
             TemplateType::Headway => HeadwayParseConfig::default().headers.as_headers(),
         };
         Self {

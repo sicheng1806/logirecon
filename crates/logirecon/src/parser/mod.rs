@@ -2,7 +2,7 @@
 //!
 //! # Example
 //! ```
-//! use logirecon::parser::{WBParser, WBParseConfig, Parse};
+//! use logirecon::parser::{WbParser, WbParseConfig, Parse};
 //! use logirecon::validate::IntoValidated;
 //! use polars::prelude::*;
 //! fn main() {
@@ -16,9 +16,9 @@
 //!         "单价" => ["3.60/KG"],
 //!     )
 //!     .unwrap();
-//!     let mut config = WBParseConfig::default();
+//!     let mut config = WbParseConfig::default();
 //!     config.headers.date = "发货日期".to_string();
-//!     let bill = WBParser::parse(data, config).unwrap();
+//!     let bill = WbParser::parse(data, config).unwrap();
 //!     println!("{}", &bill.0);
 //!     let data = bill.into_validated().unwrap();
 //!     println!("{}", data);
@@ -28,13 +28,15 @@
 mod ddd;
 mod headers;
 mod headway;
+mod jyd;
 mod parse;
 mod ts;
 mod wb;
 
-pub use ddd::{DDDHeaders, DDDParseConfig, DDDParser};
+pub use ddd::{DddHeaders, DddParseConfig, DddParser};
 pub use headers::AsHeaders;
 pub use headway::{HeadwayHeaders, HeadwayParseConfig, HeadwayParser};
+pub use jyd::{JydHeaders, JydParseConfig, JydParser};
 pub use parse::Parse;
-pub use ts::{TSHeaders, TSParseConfig, TSParser};
-pub use wb::{WBHeaders, WBParseConfig, WBParser};
+pub use ts::{TsHeaders, TsParseConfig, TsParser};
+pub use wb::{WBParseConfig, WbHeaders, WbParser};

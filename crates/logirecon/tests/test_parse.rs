@@ -2,8 +2,8 @@ mod common;
 use common::*;
 use logirecon::{
     parser::{
-        AsHeaders, DDDParseConfig, DDDParser, HeadwayParseConfig, HeadwayParser, Parse,
-        TSParseConfig, TSParser, WBParseConfig, WBParser,
+        AsHeaders, DddParseConfig, DddParser, HeadwayParseConfig, HeadwayParser, JydParseConfig,
+        JydParser, Parse, TsParseConfig, TsParser, WBParseConfig, WbParser,
     },
     reader::ExcelReader,
     validate::IntoValidated,
@@ -17,7 +17,7 @@ fn test_wb() -> Result<()> {
     let data = ExcelReader::new(config.headers.as_headers().values())
         .load_worksheet(PATH_BILLS.clone(), SHEET_WB)?
         .read()?;
-    let bill = WBParser::parse(data, config)?;
+    let bill = WbParser::parse(data, config)?;
     println!("{}", bill.into_validated()?);
     Ok(())
 }
@@ -28,7 +28,7 @@ fn test_grt() -> Result<()> {
     let data = ExcelReader::new(config.headers.as_headers().values())
         .load_worksheet(PATH_BILLS.clone(), SHEET_GRT)?
         .read()?;
-    let bill = WBParser::parse(data, config)?;
+    let bill = WbParser::parse(data, config)?;
     println!("{}", bill.into_validated()?);
     Ok(())
 }
@@ -39,14 +39,14 @@ fn test_jm() -> Result<()> {
     let data = ExcelReader::new(config.headers.as_headers().values())
         .load_worksheet(PATH_BILLS.clone(), SHEET_JM)?
         .read()?;
-    let bill = WBParser::parse(data, config)?;
+    let bill = WbParser::parse(data, config)?;
     println!("{}", bill.into_validated()?);
     Ok(())
 }
 
 #[test]
 fn test_ts() -> Result<()> {
-    let config = TSParseConfig::default();
+    let config = TsParseConfig::default();
     let data_bg = ExcelReader::new(config.headers.as_headers().values())
         .load_worksheet(PATH_BILLS.clone(), SHEET_TSBG)?
         .read()?;
@@ -54,8 +54,8 @@ fn test_ts() -> Result<()> {
         .load_worksheet(PATH_BILLS.clone(), SHEET_TSYF)?
         .read()?;
     let bills = (
-        TSParser::parse(data_bg, config.clone())?,
-        TSParser::parse(data_yf, config)?,
+        TsParser::parse(data_bg, config.clone())?,
+        TsParser::parse(data_yf, config)?,
     );
     println!("{}", bills.0.into_validated()?);
     println!("{}", bills.1.into_validated()?);
@@ -64,11 +64,22 @@ fn test_ts() -> Result<()> {
 
 #[test]
 fn test_ddd() -> Result<()> {
-    let config = DDDParseConfig::default();
+    let config = DddParseConfig::default();
     let data = ExcelReader::new(config.headers.as_headers().values())
         .load_worksheet(PATH_BILLS.clone(), SHEET_DDD)?
         .read()?;
-    let bill = DDDParser::parse(data, config)?;
+    let bill = DddParser::parse(data, config)?;
+    println!("{}", bill.into_validated()?);
+    Ok(())
+}
+
+#[test]
+fn test_jyd() -> Result<()> {
+    let config = JydParseConfig::default();
+    let data = ExcelReader::new(config.headers.as_headers().values())
+        .load_worksheet(PATH_BILLS.clone(), SHEET_JYD)?
+        .read()?;
+    let bill = JydParser::parse(data, config)?;
     println!("{}", bill.into_validated()?);
     Ok(())
 }
