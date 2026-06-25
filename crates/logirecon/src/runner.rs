@@ -82,7 +82,7 @@ pub enum RunError {
     Process(#[from] ProcessError),
     #[error("对账失败, {0}")]
     Reconsile(#[from] ReconcileError),
-    #[error("数据处理失败")]
+    #[error("数据处理失败, {0}")]
     Polars(#[from] polars::error::PolarsError),
     /// 用于GUI报错
     #[error("{0}")]

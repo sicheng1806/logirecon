@@ -108,11 +108,11 @@ impl ModalView for State {
                 space::horizontal(),
                 button("差异统计")
                     .style(button::secondary)
-                    .on_press(Message::ExportToExcel),
+                    .on_press(Message::ExportStasisToExcel),
                 space().width(SPACING),
                 button("导出文件")
                     .style(button::secondary)
-                    .on_press(Message::ExportStasisToExcel),
+                    .on_press(Message::ExportToExcel),
                 space().width(4. * SPACING),
                 button("退出").on_press(Message::ShowModal(false)),
                 space().width(4. * SPACING)
@@ -294,11 +294,15 @@ async fn export_stasis_to_excel(
         .await
     {
         let stasis = stasis_freight_and_customs(freight, customs)?;
-        let mut wb = PolarsExcelWriter::new();
-        wb.set_worksheet_name("差异结果统计")?;
-        wb.write_dataframe(&stasis)?;
-        wb.save(path.path())?;
-        Ok(format!("保存到 {}", path.file_name()))
+        if stasis.height() > 0 {
+            let mut wb = PolarsExcelWriter::new();
+            wb.set_worksheet_name("差异结果统计")?;
+            wb.write_dataframe(&stasis)?;
+            wb.save(path.path())?;
+            Ok(format!("保存到 {}", path.file_name()))
+        } else {
+            Ok("没有差异行".to_string())
+        }
     } else {
         Ok("取消保存".to_string())
     }
