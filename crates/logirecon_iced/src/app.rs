@@ -24,6 +24,12 @@ pub enum Message {
     WindowMessage(window::Message),
 }
 
+impl Default for App {
+    fn default() -> Self {
+        Self::Loaded(Box::default())
+    }
+}
+
 impl App {
     pub fn new() -> (Self, Task<Message>) {
         (
