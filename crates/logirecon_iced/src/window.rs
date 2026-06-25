@@ -39,7 +39,7 @@ impl State {
         Self {
             details: [detail::State::bill(), detail::State::shipment()],
             modal_state: None,
-            runner: runner::State::new(),
+            runner: runner::State::default(),
         }
     }
 

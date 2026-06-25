@@ -124,7 +124,7 @@ pub fn get_reconciler(
                     .read()?,
             };
             match &parse_config {
-                ParseConfig::WB(config) | ParseConfig::GRT(config) => {
+                ParseConfig::WB(config) => {
                     bills.push(WBParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
                 }
                 ParseConfig::TS(config) => {
@@ -239,7 +239,6 @@ pub struct Template {
 /// 解析器配置
 pub enum ParseConfig {
     WB(WBParseConfig),
-    GRT(WBParseConfig),
     TS(TSParseConfig),
     DDD(DDDParseConfig),
     Headway(HeadwayParseConfig),
@@ -249,7 +248,6 @@ impl AsHeaders for ParseConfig {
     fn as_headers(&self) -> std::collections::HashMap<String, String> {
         match self {
             Self::WB(config) => config.headers.as_headers(),
-            Self::GRT(config) => config.headers.as_headers(),
             Self::TS(config) => config.headers.as_headers(),
             Self::DDD(config) => config.headers.as_headers(),
             Self::Headway(config) => config.headers.as_headers(),
@@ -258,7 +256,6 @@ impl AsHeaders for ParseConfig {
     fn update_headers(&mut self, headers: impl IntoIterator<Item = (String, String)>) {
         match self {
             Self::WB(config) => config.headers.update_headers(headers),
-            Self::GRT(config) => config.headers.update_headers(headers),
             Self::TS(config) => config.headers.update_headers(headers),
             Self::DDD(config) => config.headers.update_headers(headers),
             Self::Headway(config) => config.headers.update_headers(headers),

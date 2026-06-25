@@ -13,7 +13,7 @@ use logirecon::runner::{
     ParseConfig, ReadConfig, RunError, Template, get_reconciler, stasis_freight_and_customs,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct State {
     running: bool,
     result: Option<Result<(DataFrame, DataFrame), String>>,
@@ -33,14 +33,6 @@ pub enum Message {
 }
 
 impl State {
-    pub fn new() -> Self {
-        Self {
-            running: false,
-            result: None,
-            msg: None,
-        }
-    }
-
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::ShowModal(_) => Task::none(),
@@ -187,6 +179,11 @@ impl From<template::State> for Template {
             }
             TemplateType::Grt => {
                 let mut config = WBParseConfig::grt();
+                config.headers.update_headers(headers);
+                ParseConfig::WB(config)
+            }
+            TemplateType::JM => {
+                let mut config = WBParseConfig::jm();
                 config.headers.update_headers(headers);
                 ParseConfig::WB(config)
             }

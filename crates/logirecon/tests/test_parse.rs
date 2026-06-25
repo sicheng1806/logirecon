@@ -24,12 +24,20 @@ fn test_wb() -> Result<()> {
 
 #[test]
 fn test_grt() -> Result<()> {
-    let mut config = WBParseConfig::default();
-    config.headers.shipment_no = "扩展单号".into();
-    config.headers.warehouse_code = "地址编码".into();
-    config.forwarder = "国润通".into();
+    let config = WBParseConfig::grt();
     let data = ExcelReader::new(config.headers.as_headers().values())
         .load_worksheet(PATH_BILLS.clone(), SHEET_GRT)?
+        .read()?;
+    let bill = WBParser::parse(data, config)?;
+    println!("{}", bill.into_validated()?);
+    Ok(())
+}
+
+#[test]
+fn test_jm() -> Result<()> {
+    let config = WBParseConfig::jm();
+    let data = ExcelReader::new(config.headers.as_headers().values())
+        .load_worksheet(PATH_BILLS.clone(), SHEET_JM)?
         .read()?;
     let bill = WBParser::parse(data, config)?;
     println!("{}", bill.into_validated()?);

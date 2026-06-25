@@ -22,6 +22,7 @@ use super::sheet;
 pub enum TemplateType {
     WB,
     Grt,
+    JM,
     Ddd,
     TS,
     Headway,
@@ -32,6 +33,7 @@ impl TemplateType {
         match self {
             Self::WB => "万邦",
             Self::Grt => "国润通",
+            Self::JM => "积米",
             Self::Ddd => "嘀嗒嘀",
             Self::TS => "天盛",
             Self::Headway => "头程明细",
@@ -63,6 +65,7 @@ impl State {
         let headers = match &temp_type {
             TemplateType::WB => WBParseConfig::default().headers.as_headers(),
             TemplateType::Grt => WBParseConfig::grt().headers.as_headers(),
+            TemplateType::JM => WBParseConfig::jm().headers.as_headers(),
             TemplateType::TS => TSParseConfig::default().headers.as_headers(),
             TemplateType::Ddd => DDDParseConfig::default().headers.as_headers(),
             TemplateType::Headway => HeadwayParseConfig::default().headers.as_headers(),

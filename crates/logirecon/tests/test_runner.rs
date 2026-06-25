@@ -13,10 +13,17 @@ fn test_runner() {
         }],
     };
     let grt = Template {
-        parse_config: ParseConfig::GRT(WBParseConfig::grt()),
+        parse_config: ParseConfig::WB(WBParseConfig::grt()),
         sources: vec![ReadConfig::ExcelFilePath {
             path: PATH_BILLS.clone(),
             name: SHEET_GRT.into(),
+        }],
+    };
+    let jm = Template {
+        parse_config: ParseConfig::WB(WBParseConfig::jm()),
+        sources: vec![ReadConfig::ExcelFilePath {
+            path: PATH_BILLS.clone(),
+            name: SHEET_JM.into(),
         }],
     };
     let tsbg = Template {
@@ -52,7 +59,7 @@ fn test_runner() {
             }],
         }
     };
-    let templates = vec![wb, grt, ddd, tsbg, tsyf, headway];
+    let templates = vec![wb, grt, jm, ddd, tsbg, tsyf, headway];
     let (freight_reconciler, customs_reconciler) = get_reconciler(templates).unwrap();
     let freight = freight_reconciler.get_long_result().unwrap();
     let customs = customs_reconciler.get_long_result().unwrap();

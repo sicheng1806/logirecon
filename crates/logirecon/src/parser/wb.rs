@@ -60,6 +60,19 @@ impl WBParseConfig {
             ..Default::default()
         }
     }
+    /// 积米默认模板配置
+    pub fn jm() -> Self {
+        Self {
+            forwarder: "积米".to_string(),
+            headers: WBHeaders {
+                shipment_no: "客户运单号".into(),
+                warehouse_code: "仓库代码".into(),
+                chargeable_weight: "收费重(KG)".into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
 }
 
 impl Parse for WBParser {

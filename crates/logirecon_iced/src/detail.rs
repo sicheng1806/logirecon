@@ -28,6 +28,7 @@ impl State {
                 TemplateType::TS,
                 TemplateType::Ddd,
                 TemplateType::Grt,
+                TemplateType::JM,
             ]
             .into(),
             temp_type: None,

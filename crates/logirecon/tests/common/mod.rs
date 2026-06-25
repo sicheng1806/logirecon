@@ -21,6 +21,8 @@ pub const SHEET_GRT: &'static str = "国润通2604";
 pub const SHEET_TSYF: &'static str = "天盛运费2604";
 pub const SHEET_TSBG: &'static str = "天盛报关费2604";
 pub const SHEET_DDD: &'static str = "嘀嗒嘀4月账单";
+pub const SHEET_JYD: &'static str = "京奕达2605";
+pub const SHEET_JM: &'static str = "积米2605";
 
 pub const HEADERS_HEADWAY_2026: [&str; 8] = [
     "报关周次",
