@@ -40,7 +40,7 @@ impl Default for WBParseConfig {
     fn default() -> Self {
         Self {
             datefmt: "%Y/%m/%d".into(),
-            units: ("KG".to_string(), "票".to_string()),
+            units: ("立方|KG".to_string(), "票".to_string()),
             forwarder: "万邦".to_string(),
             headers: WbHeaders::default(),
         }
@@ -129,7 +129,7 @@ impl Parse for WbParser {
             .rename_fields(["单价", "账单类型"])
             .alias("to_split");
         // 账单类型
-        let btype_col = when(col("账单类型").eq(lit(units.0.as_str())))
+        let btype_col = when(col("账单类型").str().contains(lit(units.0.as_str()), false))
             .then(lit("运费"))
             .otherwise(lit("报关费"))
             .alias("账单类型");
