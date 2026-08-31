@@ -71,6 +71,7 @@ use crate::{
 use super::DataFrame;
 use super::parser::{DddParseConfig, HeadwayParseConfig, TsParseConfig, WBParseConfig};
 use thiserror::Error;
+use tracing::info;
 
 #[derive(Debug, Error)]
 pub enum RunError {
@@ -128,31 +129,96 @@ pub fn get_reconciler(
                     .load_worksheet_from_rs(rs, &name, &extension)?
                     .read()?,
             };
-            {
-                println!("读取信息: {} x {}", data.width(), data.height());
-            }
             match &parse_config {
                 ParseConfig::Wb(config) => {
+                    info!("读取到万邦物流数据: {}行{}列", data.height(), data.width());
+                    info!(
+                        "表头: {}",
+                        headers
+                            .values()
+                            .map(|t| t.as_str())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
                     bills.push(WbParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
                 }
                 ParseConfig::Ts(config) => {
+                    info!("读取到天盛物流数据: {}行{}列", data.height(), data.width());
+                    info!(
+                        "表头: {}",
+                        headers
+                            .values()
+                            .map(|t| t.as_str())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
                     bills.push(TsParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
                 }
                 ParseConfig::Ddd(config) => {
+                    info!(
+                        "读取到嘀嗒嘀物流数据: {}行{}列",
+                        data.height(),
+                        data.width()
+                    );
+                    info!(
+                        "表头: {}",
+                        headers
+                            .values()
+                            .map(|t| t.as_str())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
                     bills.push(DddParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
                 }
                 ParseConfig::Jyd(config) => {
+                    info!(
+                        "读取到京奕达物流数据: {}行{}列",
+                        data.height(),
+                        data.width()
+                    );
+                    info!(
+                        "表头: {}",
+                        headers
+                            .values()
+                            .map(|t| t.as_str())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
                     bills.push(JydParser::parse(data, config.to_owned()).map_err(RunError::Parse)?)
                 }
-                ParseConfig::Headway(config) => shipments
-                    .push(HeadwayParser::parse(data, config.to_owned()).map_err(RunError::Parse)?),
+                ParseConfig::Headway(config) => {
+                    info!(
+                        "读取到物流头程明细数据: {}行{}列",
+                        data.height(),
+                        data.width()
+                    );
+                    info!(
+                        "表头: {}",
+                        headers
+                            .values()
+                            .map(|t| t.as_str())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
+                    shipments.push(
+                        HeadwayParser::parse(data, config.to_owned()).map_err(RunError::Parse)?,
+                    )
+                }
             }
         }
     }
     // processor
     let processor = Processor::new(bills, shipments)?;
     let (freight_bill, freight_headway) = processor.get_freight()?;
+    {
+        info!("物流运费数据:\n{:?}", &freight_bill);
+        info!("我方运费数据:\n{:?}", &freight_headway);
+    }
     let (customs_bill, customs_headway) = processor.get_customs()?;
+    {
+        info!("物流报关数据:\n{:?}", &customs_bill);
+        info!("我方报关数据:\n{:?}", &customs_headway);
+    }
     // reconcile
     let freight_reconciler = ReconcileOption::freight()
         .left(freight_bill, "物流")
@@ -236,6 +302,9 @@ pub fn stasis_freight_and_customs(
             col("报关费差异"),
         ])
         .collect()?;
+    {
+        info!("对账统计数据:\n{:?}", df);
+    }
     Ok(df)
 }
 

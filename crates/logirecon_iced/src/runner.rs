@@ -3,6 +3,7 @@ use logirecon::DataFrame;
 use logirecon::parser::{
     AsHeaders, DddParseConfig, HeadwayParseConfig, JydParseConfig, TsParseConfig, WBParseConfig,
 };
+use tracing::{info, warn};
 
 use crate::components::{dataframe_table, modal};
 use crate::constants::{EXCEL_SUFFIX, H1_SIZE, PADDING, SPACING};
@@ -238,13 +239,21 @@ impl From<template::State> for Template {
 }
 
 async fn run(data: [Vec<template::State>; 2]) -> Result<(DataFrame, DataFrame), RunError> {
+    info!("==\t执行物流对账\t==");
     let [bills, shipments] = data;
+    info!(
+        "输入对账数据:\t物流:{}, 我方:{}",
+        bills.len(),
+        shipments.len()
+    );
     if bills.is_empty() {
+        warn!("没有物流账单数据，程序退出!");
         return Err(RunError::Any(
             "物流账单内未检测到任何数据，请检查是否导入文件或者核对表头是否正确".into(),
         ));
     }
     if shipments.is_empty() {
+        warn!("没有我方明细数据，程序退出!");
         return Err(RunError::Any(
             "我方明细内未检测到任何数据，请检查是否导入文件或者核对表头是否正确".into(),
         ));

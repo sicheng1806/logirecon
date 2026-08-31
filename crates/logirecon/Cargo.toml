@@ -10,3 +10,4 @@ polars.workspace = true
 chrono.workspace = true
 calamine.workspace = true
 thiserror.workspace = true
+tracing.workspace = true

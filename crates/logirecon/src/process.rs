@@ -6,6 +6,7 @@ use crate::validate::{
 };
 use std::sync::LazyLock;
 use thiserror::Error;
+use tracing::info;
 
 /// 运费数据需满足的方案
 pub static FREIGHT_SCHEMA: LazyLock<SchemaValidator> = LazyLock::new(|| {
@@ -75,19 +76,24 @@ impl Processor {
         if raw_shipments.is_empty() {
             return Err(ProcessError::Null("我方明细数据为空".into()));
         }
-
         let bill = concat(raw_bills, UnionArgs::default())?.collect()?;
         let shipment = concat(raw_shipments, UnionArgs::default())?.collect()?;
         {
-            // println!("raw bill is : {}", bill);
+            info!("获取到原始物流数据: {}行x{}列", bill.height(), bill.width());
+            info!(
+                "获取到原始明细数据: {}行x{}列",
+                shipment.height(),
+                shipment.width()
+            );
         }
         // parse
         let relation: DataFrame = build_relation(&bill, &shipment)?;
         let bill: DataFrame = patch_bill(bill, &relation)?;
-        {
-            // println!("patched bill is : {}", bill);
-        }
         let shipment: DataFrame = patch_shipment(shipment, &relation)?;
+        {
+            info!("物流对账数据:\n{:?}", &bill);
+            info!("头程明细数据:\n{:?}", &shipment);
+        }
         Ok(Self { bill, shipment })
     }
 

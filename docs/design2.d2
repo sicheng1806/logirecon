@@ -1,0 +1,160 @@
+parse-pipeline: "数据解析管道" {
+  wb: "万邦数据解析管道"
+  grt: "国润通数据解析管道"
+  tc: "头程明细解析管道"
+}
+
+process-pipeline: "数据处理管道" {
+  logistics: "物流账单构建器"
+}
+
+vdata1: "" {
+  bill: "账单数据"
+  self: "我方明细数据"
+}
+vdata2: "" {
+  freight: "运费数据"
+  customs: "报关费"
+}
+
+dataframe: "数据框"
+
+dataframe -> parse-pipeline: "传入指定解析管道"
+
+parse-pipeline.wb -> vdata1.bill: {
+  source-arrowhead: "解析"
+  target-arrowhead: "验证"
+}
+parse-pipeline.grt -> vdata1.bill: {
+  source-arrowhead: "解析"
+  target-arrowhead: "验证"
+}
+parse-pipeline.tc -> vdata1.self: {
+  source-arrowhead: "解析"
+  target-arrowhead: "验证"
+}
+
+vdata1.bill -> process-pipeline.logistics: "传入"
+vdata1.self -> process-pipeline.logistics: "传入"
+
+process-pipeline.logistics -> vdata2.freight: "处理得到"
+process-pipeline.logistics -> vdata2.customs: "处理得到"
+
+traits: {
+  Process: ||rs
+    trait Process {
+      type Input;
+      type Output;
+      fn process(input: Self::Input) -> Self::Output;
+    }
+  ||
+
+  Process <- _.process-pipeline: "提取特征" {
+    style.stroke-dash: 3
+  }
+
+  Validated: ||rs
+    trait Validated {
+      fn validate(df: LazyFrame) -> Self;
+      fn get(self) -> DataFrame;
+      fn get_lazy(self) -> LazyFrame {
+        self.get().lazy()
+      }
+    }
+  ||
+
+  Validated <- _.vdata1: "提取特征" {
+    style.stroke-dash: 3
+  }
+  Validated <- _.vdata2: "提取特征" {
+    style.stroke-dash: 3
+  }
+
+  Parse: ||rs
+    trait Parse {
+      type Output: Validated;
+      fn parse(df: LazyFrame) -> Lazyframe;
+      fn parse_to(df: LazyFrame) -> Self::Output {
+        let df = Self::parse(df);
+        Self::Output::validate(df)
+      }
+    }
+  ||
+
+  Parse <- _.process-pipeline: "提取特征" {
+    style.stroke-dash: 3
+  }
+}
+
+impl-parse: "Parser" {
+  wb: ||rs
+    struct WbParser {
+      ... // 一些配置选项
+    }
+
+    impl WbParser for Parse {
+      type Output = Bill;
+      fn parse(df: LazyFrame) -> LazyFrame {
+        ... // 具体的解析实现
+      }
+    }
+  ||
+
+  grt: ||rs
+    struct GrtParser {
+      ... // 一些配置选项
+    }
+
+    impl GrtParser for Parse {
+      type Output = Bill;
+      fn parse(df: LazyFrame) -> LazyFrame {
+        ... // 具体的解析实现
+      }
+    }
+  ||
+
+  tc: ||rs
+    struct HeadwayParser {
+      ... // 一些配置选项
+    }
+
+    impl HeadwayParser {
+      type Output = Headway;
+      fn parse(df: LazyFrame) -> LazyFrame {
+        ... // 具体的解析实现
+      }
+    }
+  ||
+
+  wb -> _.parse-pipeline.wb: "实现" {
+    style.stroke-dash: 3
+  }
+
+  grt -> _.parse-pipeline.grt: "实现" {
+    style.stroke-dash: 3
+  }
+
+  tc -> _.parse-pipeline.tc: "实现" {
+    style.stroke-dash: 3
+  }
+}
+
+impl-process: {
+  logistics: ||rs
+    struct LogisticsProcesser {
+      ... // 一些配置
+    }
+
+    impl LogisticsProcesser for Process {
+      type Input = (Bill, Headway);
+      type Output = (Freight, Customs);
+      fn process(input: Self::Input) -> Self::Output {
+        ... // 实际的处理过程
+      }
+    }
+  ||
+
+  logistics -> _.process-pipeline.logistics: "实现" {
+    style.stroke-dash: 3
+  }
+}
