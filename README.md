@@ -4,4 +4,4 @@
 
 ## 截图
 
-![Logirecon Iced](data/screen.png)
+![Logirecon Iced](screen.png)
